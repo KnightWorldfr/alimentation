@@ -7,6 +7,17 @@
 <link rel="manifest" href="manifest.json">
 <meta name="theme-color" content="#10b981">
 <link rel="apple-touch-icon" href="icon-192.png">
+<script>
+  // Anti-flash : applique le thème AVANT le rendu du CSS, sinon on verrait
+  // une fraction de seconde de thème clair avant bascule vers sombre.
+  (function () {
+    var theme = localStorage.getItem("alimentation_theme");
+    if (!theme) {
+      theme = (window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches) ? "sombre" : "clair";
+    }
+    document.documentElement.setAttribute("data-theme", theme === "sombre" ? "dark" : "light");
+  })();
+</script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html5-qrcode/2.3.8/html5-qrcode.min.js"></script>
 <link rel="stylesheet" href="css/base.css">
 <link rel="stylesheet" href="css/composants.css">
@@ -188,6 +199,11 @@
   <!-- ============ VUE RÉGLAGES ============ -->
   <section class="vue" id="vue-reglages">
     <div class="carte">
+      <h2>Apparence</h2>
+      <button class="action secondaire" id="btn-bascule-theme">🌙 Passer en thème sombre</button>
+    </div>
+
+    <div class="carte">
       <h2>Adresse du serveur</h2>
       <p style="font-size:0.8rem; color:var(--texte-att); margin-top:-4px;">
         L'adresse Tailscale de ton PC (ex: <code>http://100.79.206.27:8000</code>).
@@ -210,6 +226,7 @@
 </main>
 
 <script src="js/api.js"></script>
+<script src="js/theme.js"></script>
 <script src="js/modale.js"></script>
 <script src="js/profils.js"></script>
 <script src="js/produit.js"></script>
