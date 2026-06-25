@@ -4,7 +4,7 @@
 // ============================================================
 
 let profilsCache = [];
-const COULEURS_DISPONIBLES = ["#4a6b4d", "#c1612f", "#5b7a9e", "#9e6b9e", "#b3422f", "#7a8c4a"];
+const COULEURS_DISPONIBLES = ["#10b981", "#f59e0b", "#3b82f6", "#ec4899", "#8b5cf6", "#ef4444"];
 
 function initiale(nom) {
   return (nom || "?").trim().charAt(0).toUpperCase();
@@ -96,8 +96,7 @@ function profilCarteHtml(p) {
           ${p.objectif_kcal_jour ? ` · objectif ${p.objectif_kcal_jour} kcal/j` : ""}
         </div>
       </div>
-      <button class="btn-suppr-profil-reglages" id="btn-suppr-profil-${p.id}"
-              style="background:none;border:none;color:var(--rouge-alerte);font-size:1.1rem;cursor:pointer;">✕</button>
+              <button class="btn-suppr-profil-reglages" id="btn-suppr-profil-${p.id}">✕</button>
     </div>
   `;
 }
