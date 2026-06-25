@@ -406,7 +406,19 @@ document.querySelectorAll("nav button").forEach(btn => {
 // ---------- Scan caméra ----------
 let scannerActif = null;
 
-document.getElementById("btn-camera").addEventListener("click", () => {
+// Vérifie le chiffre de contrôle d'un code EAN-13 : le 13e chiffre est
+// calculé à partir des 12 premiers. Si ça ne correspond pas, la lecture
+// caméra a probablement mal interprété une ou plusieurs barres — on rejette
+// plutôt que d'envoyer un code-barres faux à l'API.
+function checksumEAN13Valide(code) {
+  if (!/^\d{13}$/.test(code)) return true; // pas un EAN-13 (EAN-8, Code128...) : pas de vérif possible, on laisse passer
+  const chiffres = code.split("").map(Number);
+  const somme = chiffres.slice(0, 12).reduce((acc, chiffre, i) => acc + chiffre * (i % 2 === 0 ? 1 : 3), 0);
+  const checksumAttendu = (10 - (somme % 10)) % 10;
+  return checksumAttendu === chiffres[12];
+}
+
+document.getElementById("btn-camera").addEventListener("click", async () => {
   const bouton = document.getElementById("btn-camera");
   if (scannerActif) {
     scannerActif.stop();
@@ -414,21 +426,70 @@ document.getElementById("btn-camera").addEventListener("click", () => {
     bouton.textContent = "Activer la caméra";
     return;
   }
-  scannerActif = new Html5Qrcode("lecteur-camera");
-  scannerActif.start(
-    { facingMode: "environment" },
-    { fps: 10, qrbox: 220 },
-    (codeDetecte) => {
-      document.getElementById("input-code-manuel").value = codeDetecte;
-      scannerActif.stop();
+
+  scannerActif = new Html5Qrcode("lecteur-camera", {
+    // On restreint explicitement aux formats utilisés sur les produits
+    // alimentaires : ça améliore la vitesse et la fiabilité de détection
+    // par rapport à un scan "tous formats" (QR codes inclus, inutiles ici).
+    formatsToSupport: [
+      Html5QrcodeSupportedFormats.EAN_13,
+      Html5QrcodeSupportedFormats.EAN_8,
+      Html5QrcodeSupportedFormats.UPC_A,
+      Html5QrcodeSupportedFormats.UPC_E,
+      Html5QrcodeSupportedFormats.CODE_128,
+    ],
+  });
+
+  // Configuration adaptée aux codes-barres (rectangulaires, pas carrés comme un QR code).
+  const config = {
+    fps: 10,
+    qrbox: { width: 280, height: 120 },  // zone large et basse, adaptée à un EAN-13 horizontal
+    aspectRatio: 1.7,
+  };
+
+  // Sur PC, il n'y a généralement qu'une seule caméra ("frontale" pour le
+  // navigateur) — demander "environment" (caméra arrière) échoue souvent
+  // silencieusement. On liste les caméras dispo et on prend la première,
+  // ce qui fonctionne aussi bien sur PC que sur téléphone.
+  try {
+    const cameras = await Html5Qrcode.getCameras();
+    if (!cameras || cameras.length === 0) {
+      afficherResultatScan("Aucune caméra détectée sur cet appareil.", true);
       scannerActif = null;
-      bouton.textContent = "Activer la caméra";
-      chercherProduit(codeDetecte);
+      return;
     }
-  ).then(() => { bouton.textContent = "Désactiver la caméra"; })
-   .catch(err => {
-      afficherResultatScan(`Impossible d'accéder à la caméra : ${err}. Vérifie que tu es bien en HTTPS ou en localhost, et que tu as autorisé l'accès caméra.`, true);
-   });
+    // Sur téléphone, préfère la caméra arrière si plusieurs sont dispo
+    // (souvent nommée avec "back" ou "environment" dans son label).
+    const camArriere = cameras.find(c => /back|rear|environment/i.test(c.label));
+    const idCamera = camArriere ? camArriere.id : cameras[0].id;
+
+    await scannerActif.start(
+      idCamera,
+      config,
+      (codeDetecte) => {
+        // Rejette les lectures EAN-13 dont le checksum ne correspond pas :
+        // signe que la caméra a mal lu une partie du code, on continue de
+        // scanner plutôt que d'envoyer un code-barres erroné à l'API.
+        if (!checksumEAN13Valide(codeDetecte)) {
+          return; // ignore cette lecture, le scan continue automatiquement
+        }
+        document.getElementById("input-code-manuel").value = codeDetecte;
+        scannerActif.stop();
+        scannerActif = null;
+        bouton.textContent = "Activer la caméra";
+        // Affiche le code détecté avant de lancer la recherche, pour que
+        // tu puisses vérifier visuellement que c'est bien le bon produit
+        // avant l'appel réseau (utile si jamais deux produits étaient
+        // visibles en même temps dans le cadre de la caméra).
+        afficherResultatScan(`Code détecté : ${codeDetecte} — recherche en cours…`, false);
+        chercherProduit(codeDetecte);
+      }
+    );
+    bouton.textContent = "Désactiver la caméra";
+  } catch (err) {
+    afficherResultatScan(`Impossible d'accéder à la caméra : ${err}. Vérifie que tu es bien en HTTPS ou en localhost, et que tu as autorisé l'accès caméra.`, true);
+    scannerActif = null;
+  }
 });
 
 document.getElementById("btn-chercher-manuel").addEventListener("click", () => {
