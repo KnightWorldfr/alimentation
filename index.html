@@ -461,9 +461,13 @@ function afficherResultatScan(message, estErreur) {
 
 function afficherFicheProduit(p) {
   const kcal = p.energie_kcal_100g ?? "?";
+  const valeursManquantes = [p.energie_kcal_100g, p.proteines_100g, p.glucides_100g, p.lipides_100g]
+    .some(v => v === null || v === undefined);
+  const nomManquant = !p.nom || p.nom === "Nom inconnu";
+
   document.getElementById("zone-resultat-scan").innerHTML = `
     <div class="carte">
-      <h2>${p.nom}</h2>
+      <h2>${nomManquant ? "Nom inconnu" : p.nom}</h2>
       <div class="resultat">
         ${p.marque ? p.marque + " — " : ""}${p.quantite_unite || "quantité inconnue"}<br>
         <strong>${kcal} kcal</strong> / 100g
@@ -474,12 +478,82 @@ function afficherFicheProduit(p) {
           <div class="macro">Sel <span class="val">${fmt(p.sel_100g)} g</span></div>
         </div>
       </div>
+      ${(valeursManquantes || nomManquant) ? `
+        <div class="resultat erreur" style="margin-bottom:12px;">
+          ${valeursManquantes ? "Valeurs nutritionnelles incomplètes sur Open Food Facts." : "Nom du produit manquant."}
+          Tu peux les compléter à la main (lis l'étiquette du produit).
+        </div>
+        <button class="action secondaire" id="btn-afficher-saisie-manuelle">Compléter les valeurs manquantes</button>
+        <div id="zone-saisie-manuelle"></div>
+      ` : ""}
       <label for="input-quantite-ajout">Quantité ajoutée au stock (grammes)</label>
       <input type="number" id="input-quantite-ajout" placeholder="laisser vide pour auto-détecter">
       <button class="action" id="btn-ajouter-stock">Ajouter au stock</button>
     </div>
   `;
   document.getElementById("btn-ajouter-stock").addEventListener("click", () => ajouterAuStock(p.code_barres));
+
+  const btnSaisie = document.getElementById("btn-afficher-saisie-manuelle");
+  if (btnSaisie) {
+    btnSaisie.addEventListener("click", () => afficherFormulaireSaisieManuelle(p));
+  }
+}
+
+function afficherFormulaireSaisieManuelle(p) {
+  document.getElementById("zone-saisie-manuelle").innerHTML = `
+    <label for="sm-nom">Nom du produit</label>
+    <input type="text" id="sm-nom" value="${p.nom && p.nom !== 'Nom inconnu' ? p.nom : ''}" placeholder="ex: Lipton Ice Tea Pêche Zéro">
+    <label for="sm-kcal">Énergie (kcal / 100g ou 100ml)</label>
+    <input type="number" id="sm-kcal" value="${p.energie_kcal_100g ?? ''}">
+    <label for="sm-proteines">Protéines (g / 100g)</label>
+    <input type="number" id="sm-proteines" value="${p.proteines_100g ?? ''}">
+    <label for="sm-glucides">Glucides (g / 100g)</label>
+    <input type="number" id="sm-glucides" value="${p.glucides_100g ?? ''}">
+    <label for="sm-lipides">Lipides (g / 100g)</label>
+    <input type="number" id="sm-lipides" value="${p.lipides_100g ?? ''}">
+    <label for="sm-sucres">Sucres (g / 100g)</label>
+    <input type="number" id="sm-sucres" value="${p.sucres_100g ?? ''}">
+    <label for="sm-sel">Sel (g / 100g)</label>
+    <input type="number" id="sm-sel" value="${p.sel_100g ?? ''}">
+    <button class="action" id="btn-valider-saisie-manuelle">Enregistrer ces valeurs</button>
+  `;
+  document.getElementById("btn-valider-saisie-manuelle").addEventListener("click", () => validerSaisieManuelle(p.code_barres));
+}
+
+async function validerSaisieManuelle(codeBarres) {
+  const valeur = (id) => {
+    const v = document.getElementById(id).value;
+    return v === "" ? null : parseFloat(v);
+  };
+  const nomSaisi = document.getElementById("sm-nom").value.trim();
+
+  const payload = {
+    nom: nomSaisi || null,
+    energie_kcal_100g: valeur("sm-kcal"),
+    proteines_100g: valeur("sm-proteines"),
+    glucides_100g: valeur("sm-glucides"),
+    lipides_100g: valeur("sm-lipides"),
+    sucres_100g: valeur("sm-sucres"),
+    sel_100g: valeur("sm-sel"),
+  };
+
+  try {
+    const resp = await fetch(`${API.url}/produit/${codeBarres}`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+    });
+    const data = await resp.json();
+    if (!resp.ok) {
+      afficherResultatScan(data.detail || "Erreur lors de l'enregistrement.", true);
+      return;
+    }
+    dernierProduitTrouve = data;
+    afficherFicheProduit(data);
+    afficherResultatScan("✓ Valeurs enregistrées pour ce produit.", false);
+  } catch (e) {
+    afficherResultatScan("Erreur réseau lors de l'enregistrement.", true);
+  }
 }
 
 function fmt(v) { return v === null || v === undefined ? "?" : v; }
