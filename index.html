@@ -441,10 +441,17 @@ document.getElementById("btn-camera").addEventListener("click", async () => {
   });
 
   // Configuration adaptée aux codes-barres (rectangulaires, pas carrés comme un QR code).
+  // focusMode "continuous" demande au navigateur de garder la mise au point
+  // active en permanence (utile sur téléphone, où l'autofocus peut sinon ne
+  // se déclencher qu'une fois à l'ouverture de la caméra et rester flou ensuite).
   const config = {
     fps: 10,
     qrbox: { width: 280, height: 120 },  // zone large et basse, adaptée à un EAN-13 horizontal
     aspectRatio: 1.7,
+    videoConstraints: {
+      focusMode: "continuous",
+      advanced: [{ focusMode: "continuous" }],
+    },
   };
 
   // Sur PC, il n'y a généralement qu'une seule caméra ("frontale" pour le
