@@ -281,8 +281,8 @@
 }
 
 .icone-mouvement.ajout { background: var(--accent-clair); color: var(--accent-fonce); }
-.icone-mouvement.consommation_libre { background: #fef3e2; color: #d97706; }
-.icone-mouvement.recette_part { background: #f3e8ff; color: #7c3aed; }
+.icone-mouvement.consommation_libre { background: var(--orange-clair); color: var(--orange); }
+.icone-mouvement.recette_part { background: var(--violet-clair); color: var(--violet); }
 .icone-mouvement.correction_stock { background: var(--surface-alt); color: var(--texte-att); }
 
 .item-historique .details { flex: 1; min-width: 0; }
