@@ -460,124 +460,152 @@ function afficherResultatScan(message, estErreur) {
 }
 
 function afficherFicheProduit(p) {
-  const kcal = p.energie_kcal_100g ?? "?";
-  const valeursManquantes = [p.energie_kcal_100g, p.proteines_100g, p.glucides_100g, p.lipides_100g]
-    .some(v => v === null || v === undefined);
   const nomManquant = !p.nom || p.nom === "Nom inconnu";
+  const unite = p.unite_mesure || "g";
+  // Quantité numérique du contenant : si pas encore connue, on essaie de
+  // l'extraire depuis quantite_unite (ex: "1,5 l" -> 1500), sinon vide.
+  const quantiteNumerique = extraireQuantiteNumerique(p.quantite_unite, unite);
 
   document.getElementById("zone-resultat-scan").innerHTML = `
     <div class="carte">
-      <h2>${nomManquant ? "Nom inconnu" : p.nom}</h2>
-      <div class="resultat">
-        ${p.marque ? p.marque + " — " : ""}${p.quantite_unite || "quantité inconnue"}<br>
-        <strong>${kcal} kcal</strong> / 100g
-        <div class="macros-grille">
-          <div class="macro">Protéines <span class="val">${fmt(p.proteines_100g)} g</span></div>
-          <div class="macro">Glucides <span class="val">${fmt(p.glucides_100g)} g</span></div>
-          <div class="macro">Lipides <span class="val">${fmt(p.lipides_100g)} g</span></div>
-          <div class="macro">Sel <span class="val">${fmt(p.sel_100g)} g</span></div>
+      <label for="champ-nom">Nom du produit</label>
+      <input type="text" id="champ-nom" value="${nomManquant ? '' : echapper(p.nom)}"
+             placeholder="${nomManquant ? 'Nom inconnu — complète-le ici' : ''}">
+
+      <label for="champ-marque">Marque</label>
+      <input type="text" id="champ-marque" value="${p.marque ? echapper(p.marque) : ''}" placeholder="ex: Lipton">
+
+      <div style="display:flex; gap:8px;">
+        <div style="flex:1;">
+          <label for="champ-quantite-totale">Quantité du contenant</label>
+          <input type="number" id="champ-quantite-totale" value="${quantiteNumerique ?? ''}"
+                 placeholder="ex: 1500" style="${quantiteNumerique === null ? 'border-color:var(--rouge-alerte);' : ''}">
+        </div>
+        <div style="width:90px;">
+          <label for="champ-unite">Unité</label>
+          <select id="champ-unite">
+            <option value="g" ${unite === 'g' ? 'selected' : ''}>g</option>
+            <option value="ml" ${unite === 'ml' ? 'selected' : ''}>ml</option>
+          </select>
         </div>
       </div>
-      ${(valeursManquantes || nomManquant) ? `
-        <div class="resultat erreur" style="margin-bottom:12px;">
-          ${valeursManquantes ? "Valeurs nutritionnelles incomplètes sur Open Food Facts." : "Nom du produit manquant."}
-          Tu peux les compléter à la main (lis l'étiquette du produit).
+      ${quantiteNumerique === null ? `<div class="resultat erreur" style="margin-top:-6px;">Quantité du contenant inconnue — obligatoire pour ajouter au stock.</div>` : ""}
+
+      <div class="macros-grille" style="margin-top:8px;">
+        <div class="macro">
+          Énergie (kcal/100${unite === 'ml' ? 'ml' : 'g'})
+          <input type="number" id="champ-kcal" value="${p.energie_kcal_100g ?? ''}" style="margin:4px 0 0; padding:6px;">
         </div>
-        <button class="action secondaire" id="btn-afficher-saisie-manuelle">Compléter les valeurs manquantes</button>
-        <div id="zone-saisie-manuelle"></div>
-      ` : ""}
-      <label for="input-quantite-ajout">Quantité ajoutée au stock (grammes)</label>
-      <input type="number" id="input-quantite-ajout" placeholder="laisser vide pour auto-détecter">
-      <button class="action" id="btn-ajouter-stock">Ajouter au stock</button>
+        <div class="macro">
+          Protéines (g/100${unite === 'ml' ? 'ml' : 'g'})
+          <input type="number" id="champ-proteines" value="${p.proteines_100g ?? ''}" style="margin:4px 0 0; padding:6px;">
+        </div>
+        <div class="macro">
+          Glucides (g/100${unite === 'ml' ? 'ml' : 'g'})
+          <input type="number" id="champ-glucides" value="${p.glucides_100g ?? ''}" style="margin:4px 0 0; padding:6px;">
+        </div>
+        <div class="macro">
+          Lipides (g/100${unite === 'ml' ? 'ml' : 'g'})
+          <input type="number" id="champ-lipides" value="${p.lipides_100g ?? ''}" style="margin:4px 0 0; padding:6px;">
+        </div>
+        <div class="macro">
+          Sucres (g/100${unite === 'ml' ? 'ml' : 'g'})
+          <input type="number" id="champ-sucres" value="${p.sucres_100g ?? ''}" style="margin:4px 0 0; padding:6px;">
+        </div>
+        <div class="macro">
+          Sel (g/100${unite === 'ml' ? 'ml' : 'g'})
+          <input type="number" id="champ-sel" value="${p.sel_100g ?? ''}" style="margin:4px 0 0; padding:6px;">
+        </div>
+      </div>
+
+      <label for="input-quantite-ajout" style="margin-top:12px;">Quantité ajoutée au stock</label>
+      <input type="number" id="input-quantite-ajout" placeholder="laisser vide = quantité totale du contenant">
+      <button class="action" id="btn-ajouter-stock">Enregistrer et ajouter au stock</button>
     </div>
   `;
-  document.getElementById("btn-ajouter-stock").addEventListener("click", () => ajouterAuStock(p.code_barres));
-
-  const btnSaisie = document.getElementById("btn-afficher-saisie-manuelle");
-  if (btnSaisie) {
-    btnSaisie.addEventListener("click", () => afficherFormulaireSaisieManuelle(p));
-  }
+  document.getElementById("btn-ajouter-stock").addEventListener("click", () => enregistrerEtAjouter(p.code_barres));
 }
 
-function afficherFormulaireSaisieManuelle(p) {
-  document.getElementById("zone-saisie-manuelle").innerHTML = `
-    <label for="sm-nom">Nom du produit</label>
-    <input type="text" id="sm-nom" value="${p.nom && p.nom !== 'Nom inconnu' ? p.nom : ''}" placeholder="ex: Lipton Ice Tea Pêche Zéro">
-    <label for="sm-kcal">Énergie (kcal / 100g ou 100ml)</label>
-    <input type="number" id="sm-kcal" value="${p.energie_kcal_100g ?? ''}">
-    <label for="sm-proteines">Protéines (g / 100g)</label>
-    <input type="number" id="sm-proteines" value="${p.proteines_100g ?? ''}">
-    <label for="sm-glucides">Glucides (g / 100g)</label>
-    <input type="number" id="sm-glucides" value="${p.glucides_100g ?? ''}">
-    <label for="sm-lipides">Lipides (g / 100g)</label>
-    <input type="number" id="sm-lipides" value="${p.lipides_100g ?? ''}">
-    <label for="sm-sucres">Sucres (g / 100g)</label>
-    <input type="number" id="sm-sucres" value="${p.sucres_100g ?? ''}">
-    <label for="sm-sel">Sel (g / 100g)</label>
-    <input type="number" id="sm-sel" value="${p.sel_100g ?? ''}">
-    <button class="action" id="btn-valider-saisie-manuelle">Enregistrer ces valeurs</button>
-  `;
-  document.getElementById("btn-valider-saisie-manuelle").addEventListener("click", () => validerSaisieManuelle(p.code_barres));
+// Tente d'extraire un nombre depuis le texte "quantite_unite" (ex: "1,5 l" -> 1500 si unite=ml)
+function extraireQuantiteNumerique(texte, unite) {
+  if (!texte) return null;
+  const match = texte.toLowerCase().replace(",", ".").match(/([\d.]+)\s*(kg|g|l|cl|ml)\b/);
+  if (!match) return null;
+  const valeur = parseFloat(match[1]);
+  const u = match[2];
+  const conversions = { g: 1, kg: 1000, ml: 1, cl: 10, l: 1000 };
+  return valeur * (conversions[u] ?? 1);
 }
 
-async function validerSaisieManuelle(codeBarres) {
-  const valeur = (id) => {
-    const v = document.getElementById(id).value;
-    return v === "" ? null : parseFloat(v);
-  };
-  const nomSaisi = document.getElementById("sm-nom").value.trim();
-
-  const payload = {
-    nom: nomSaisi || null,
-    energie_kcal_100g: valeur("sm-kcal"),
-    proteines_100g: valeur("sm-proteines"),
-    glucides_100g: valeur("sm-glucides"),
-    lipides_100g: valeur("sm-lipides"),
-    sucres_100g: valeur("sm-sucres"),
-    sel_100g: valeur("sm-sel"),
-  };
-
-  try {
-    const resp = await fetch(`${API.url}/produit/${codeBarres}`, {
-      method: "PUT",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(payload),
-    });
-    const data = await resp.json();
-    if (!resp.ok) {
-      afficherResultatScan(data.detail || "Erreur lors de l'enregistrement.", true);
-      return;
-    }
-    dernierProduitTrouve = data;
-    afficherFicheProduit(data);
-    afficherResultatScan("✓ Valeurs enregistrées pour ce produit.", false);
-  } catch (e) {
-    afficherResultatScan("Erreur réseau lors de l'enregistrement.", true);
-  }
+function echapper(texte) {
+  const div = document.createElement("div");
+  div.textContent = texte;
+  return div.innerHTML;
 }
 
 function fmt(v) { return v === null || v === undefined ? "?" : v; }
 
-async function ajouterAuStock(codeBarres) {
-  const qte = document.getElementById("input-quantite-ajout").value;
+// Enregistre les champs édités (nom, quantité, macros) puis ajoute au stock,
+// en un seul geste — plus besoin de passer par un bouton "renseigner les infos".
+async function enregistrerEtAjouter(codeBarres) {
+  const valeur = (id) => {
+    const v = document.getElementById(id).value;
+    return v === "" ? null : parseFloat(v);
+  };
+  const texte = (id) => document.getElementById(id).value.trim();
+
+  const quantiteTotale = valeur("champ-quantite-totale");
+  const uniteMesure = document.getElementById("champ-unite").value;
+
+  if (quantiteTotale === null) {
+    afficherResultatScan("Merci de renseigner la quantité du contenant (obligatoire).", true);
+    return;
+  }
+
+  const payload = {
+    nom: texte("champ-nom") || null,
+    marque: texte("champ-marque") || null,
+    quantite_totale: quantiteTotale,
+    unite_mesure: uniteMesure,
+    energie_kcal_100g: valeur("champ-kcal"),
+    proteines_100g: valeur("champ-proteines"),
+    glucides_100g: valeur("champ-glucides"),
+    lipides_100g: valeur("champ-lipides"),
+    sucres_100g: valeur("champ-sucres"),
+    sel_100g: valeur("champ-sel"),
+  };
+
   try {
-    const resp = await fetch(`${API.url}/stock/ajouter`, {
-      method: "POST",
+    // 1. Sauvegarde les infos produit (nom, quantité, macros) éditées
+    const respMaj = await fetch(`${API.url}/produit/${codeBarres}`, {
+      method: "PUT",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        code_barres: codeBarres,
-        quantite_g: qte ? parseFloat(qte) : null,
-      }),
+      body: JSON.stringify(payload),
     });
-    const data = await resp.json();
-    if (!resp.ok) {
-      afficherResultatScan(data.detail, true);
+    if (!respMaj.ok) {
+      const err = await respMaj.json();
+      afficherResultatScan(err.detail || "Erreur lors de l'enregistrement des infos produit.", true);
       return;
     }
-    afficherResultatScan(`✓ ${data.message}`, false);
+
+    // 2. Ajoute la quantité saisie au stock (ou la quantité totale du contenant si vide)
+    const qteAjout = document.getElementById("input-quantite-ajout").value;
+    const quantiteAjoutee = qteAjout ? parseFloat(qteAjout) : quantiteTotale;
+
+    const respStock = await fetch(`${API.url}/stock/ajouter`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ code_barres: codeBarres, quantite_g: quantiteAjoutee }),
+    });
+    const dataStock = await respStock.json();
+    if (!respStock.ok) {
+      afficherResultatScan(dataStock.detail, true);
+      return;
+    }
+    afficherResultatScan(`✓ ${dataStock.message}`, false);
     document.getElementById("input-code-manuel").value = "";
   } catch (e) {
-    afficherResultatScan("Erreur lors de l'ajout au stock.", true);
+    afficherResultatScan("Erreur réseau lors de l'enregistrement.", true);
   }
 }
 
@@ -597,7 +625,7 @@ async function chargerStock() {
           <div class="nom">${item.nom}</div>
           <div class="marque">${item.marque || ""}</div>
         </div>
-        <div class="quantite">${Math.round(item.total_restant_g)} g</div>
+        <div class="quantite">${Math.round(item.total_restant_g)} ${item.unite_mesure || 'g'}</div>
       </div>
     `).join("");
   } catch (e) {
@@ -612,7 +640,7 @@ async function chargerSelectProduits() {
     const resp = await fetch(`${API.url}/stock`);
     const items = await resp.json();
     select.innerHTML = items.map(item =>
-      `<option value="${item.code_barres}">${item.nom} (${Math.round(item.total_restant_g)} g restants)</option>`
+      `<option value="${item.code_barres}">${item.nom} (${Math.round(item.total_restant_g)} ${item.unite_mesure || 'g'} restants)</option>`
     ).join("") || `<option value="">Aucun produit en stock</option>`;
   } catch (e) {
     select.innerHTML = `<option value="">Erreur de chargement</option>`;
