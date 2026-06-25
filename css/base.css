@@ -34,15 +34,76 @@
   --profil-5: #8b5cf6;
   --profil-6: #ef4444;
 
+  /* Tons supplémentaires pour les icônes d'historique (orange/violet) */
+  --orange: #d97706;
+  --orange-clair: #fef3e2;
+  --violet: #7c3aed;
+  --violet-clair: #f3e8ff;
+
   --rayon-sm: 8px;
   --rayon: 14px;
   --rayon-lg: 20px;
   --ombre-sm: 0 1px 2px rgba(20, 24, 31, 0.05);
   --ombre: 0 2px 8px rgba(20, 24, 31, 0.07);
-  --ombre-lg: 0 8px 28px rgba(20, 24, 31, 0.12);
+  --ombre-lg: 0 8px 28px rgba(20, 24, 31, 0.25);
 
   --hauteur-nav-mobile: 64px;
   --hauteur-header: 60px;
+
+  /* Transition douce uniquement sur les couleurs lors du changement de thème */
+  color-scheme: light;
+}
+
+/* ---------- Thème sombre ----------
+   Activé en ajoutant data-theme="dark" sur <html>. Mêmes noms de variables,
+   valeurs adaptées : surfaces foncées mais pas noir pur (moins fatiguant),
+   accent légèrement éclairci pour rester lisible sur fond sombre. */
+html[data-theme="dark"] {
+  --fond: #0f1115;
+  --surface: #1a1d23;
+  --surface-alt: #232730;
+  --bordure: #323742;
+  --texte: #eef0f3;
+  --texte-att: #a7afbc;
+  --texte-faible: #6b7280;
+
+  --accent: #1cd996;
+  --accent-fonce: #34e3a3;
+  --accent-clair: #143a2c;
+
+  --alerte: #f0635a;
+  --alerte-clair: #3a1f1d;
+  --info: #5b9ce8;
+  --info-clair: #1c2c3d;
+
+  --profil-1: #1cd996;
+  --profil-2: #fbbf24;
+  --profil-3: #60a5fa;
+  --profil-4: #f472b6;
+  --profil-5: #a78bfa;
+  --profil-6: #f87171;
+
+  --orange: #fbbf24;
+  --orange-clair: #3d2e0f;
+  --violet: #c4b5fd;
+  --violet-clair: #2e2150;
+
+  --ombre-sm: 0 1px 2px rgba(0, 0, 0, 0.3);
+  --ombre: 0 2px 10px rgba(0, 0, 0, 0.35);
+  --ombre-lg: 0 8px 32px rgba(0, 0, 0, 0.5);
+
+  color-scheme: dark;
+}
+
+html[data-theme="dark"] body {
+  background: var(--fond);
+}
+
+/* Transition douce des couleurs au moment du switch (pas sur tout, juste
+   les propriétés visuelles, pour éviter un flash brutal) */
+body, .carte, header, nav, input, select, textarea, .carte-stock,
+.contenu-modale, .carte-profil, .carte-recette {
+  transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease;
 }
 
 * { box-sizing: border-box; }
