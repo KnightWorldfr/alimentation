@@ -8,263 +8,34 @@
 <meta name="theme-color" content="#2e4630">
 <link rel="apple-touch-icon" href="icon-192.png">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html5-qrcode/2.3.8/html5-qrcode.min.js"></script>
-<style>
-  :root {
-    --encre: #1f2a1f;
-    --papier: #f6f3ea;
-    --carte: #ffffff;
-    --vert-principal: #4a6b4d;
-    --vert-fonce: #2e4630;
-    --terracotta: #c1612f;
-    --gris-ligne: #d9d3c2;
-    --rouge-alerte: #b3422f;
-  }
-
-  * { box-sizing: border-box; }
-
-  body {
-    margin: 0;
-    background: var(--papier);
-    color: var(--encre);
-    font-family: 'Courier New', ui-monospace, monospace;
-    line-height: 1.45;
-    padding-bottom: 80px;
-  }
-
-  header {
-    background: var(--vert-fonce);
-    color: var(--papier);
-    padding: 18px 16px 14px;
-    position: sticky;
-    top: 0;
-    z-index: 10;
-  }
-
-  header h1 {
-    margin: 0;
-    font-size: 1.3rem;
-    letter-spacing: 0.04em;
-    text-transform: uppercase;
-    font-weight: 700;
-  }
-
-  header .sous-titre {
-    font-size: 0.78rem;
-    opacity: 0.75;
-    margin-top: 2px;
-  }
-
-  nav {
-    display: flex;
-    background: var(--vert-fonce);
-    border-top: 1px solid rgba(255,255,255,0.15);
-  }
-
-  nav button {
-    flex: 1;
-    background: none;
-    border: none;
-    color: rgba(246,243,234,0.6);
-    font-family: inherit;
-    font-size: 0.75rem;
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-    padding: 10px 4px;
-    cursor: pointer;
-    border-bottom: 3px solid transparent;
-  }
-
-  nav button.actif {
-    color: var(--papier);
-    border-bottom-color: var(--terracotta);
-  }
-
-  main {
-    padding: 16px;
-    max-width: 480px;
-    margin: 0 auto;
-  }
-
-  .vue { display: none; }
-  .vue.actif { display: block; }
-
-  .carte {
-    background: var(--carte);
-    border: 1px solid var(--gris-ligne);
-    border-radius: 3px;
-    padding: 16px;
-    margin-bottom: 14px;
-  }
-
-  .carte h2 {
-    margin: 0 0 12px;
-    font-size: 0.85rem;
-    text-transform: uppercase;
-    letter-spacing: 0.06em;
-    color: var(--vert-fonce);
-    border-bottom: 2px solid var(--vert-principal);
-    padding-bottom: 6px;
-  }
-
-  label {
-    display: block;
-    font-size: 0.72rem;
-    text-transform: uppercase;
-    letter-spacing: 0.04em;
-    color: #6b6555;
-    margin-bottom: 4px;
-  }
-
-  input, select {
-    width: 100%;
-    font-family: inherit;
-    font-size: 0.95rem;
-    padding: 9px 10px;
-    margin-bottom: 12px;
-    border: 1px solid var(--gris-ligne);
-    border-radius: 2px;
-    background: var(--papier);
-    color: var(--encre);
-  }
-
-  input:focus, select:focus {
-    outline: 2px solid var(--vert-principal);
-    outline-offset: 1px;
-  }
-
-  button.action {
-    width: 100%;
-    font-family: inherit;
-    font-size: 0.85rem;
-    text-transform: uppercase;
-    letter-spacing: 0.04em;
-    font-weight: 700;
-    padding: 12px;
-    border: none;
-    border-radius: 2px;
-    background: var(--vert-principal);
-    color: var(--papier);
-    cursor: pointer;
-  }
-
-  button.action:active { background: var(--vert-fonce); }
-
-  button.action.secondaire {
-    background: var(--papier);
-    color: var(--vert-fonce);
-    border: 1px solid var(--vert-principal);
-  }
-
-  button.action.danger {
-    background: var(--rouge-alerte);
-  }
-
-  #lecteur-camera {
-    width: 100%;
-    border-radius: 2px;
-    overflow: hidden;
-    margin-bottom: 12px;
-    border: 2px dashed var(--gris-ligne);
-  }
-
-  .ligne-code {
-    display: flex;
-    gap: 8px;
-  }
-
-  .ligne-code input { flex: 1; }
-  .ligne-code button {
-    width: auto;
-    padding: 9px 14px;
-    margin-bottom: 12px;
-  }
-
-  .resultat {
-    background: #eef2e7;
-    border-left: 3px solid var(--vert-principal);
-    padding: 10px 12px;
-    margin-bottom: 12px;
-    font-size: 0.85rem;
-  }
-
-  .resultat.erreur {
-    background: #f5e6e1;
-    border-left-color: var(--rouge-alerte);
-    color: var(--rouge-alerte);
-  }
-
-  .item-stock {
-    display: flex;
-    justify-content: space-between;
-    align-items: baseline;
-    padding: 10px 0;
-    border-bottom: 1px solid var(--gris-ligne);
-    font-size: 0.88rem;
-  }
-
-  .item-stock:last-child { border-bottom: none; }
-
-  .item-stock .nom { font-weight: 700; }
-  .item-stock .marque { color: #8a8370; font-size: 0.75rem; }
-  .item-stock .quantite {
-    font-weight: 700;
-    color: var(--vert-fonce);
-    white-space: nowrap;
-  }
-
-  .item-historique {
-    display: flex;
-    justify-content: space-between;
-    padding: 8px 0;
-    border-bottom: 1px solid var(--gris-ligne);
-    font-size: 0.8rem;
-  }
-
-  .tag-ajout { color: var(--vert-principal); font-weight: 700; }
-  .tag-conso { color: var(--terracotta); font-weight: 700; }
-
-  .vide {
-    text-align: center;
-    padding: 30px 10px;
-    color: #9c9580;
-    font-size: 0.85rem;
-  }
-
-  .macros-grille {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 6px;
-    margin-top: 6px;
-  }
-
-  .macro {
-    background: var(--papier);
-    border: 1px solid var(--gris-ligne);
-    padding: 6px 8px;
-    font-size: 0.78rem;
-  }
-
-  .macro .val { font-weight: 700; color: var(--vert-fonce); }
-</style>
+<link rel="stylesheet" href="css/base.css">
+<link rel="stylesheet" href="css/composants.css">
+<link rel="stylesheet" href="css/responsive.css">
 </head>
 <body>
 
 <header>
-  <h1>🍽️ Alimentation</h1>
-  <div class="sous-titre">Stock, calories &amp; courses en grammes près</div>
+  <div class="ligne-titre">
+    <div>
+      <h1>🍽️ Alimentation</h1>
+      <div class="sous-titre">Stock, calories, recettes &amp; courses</div>
+    </div>
+    <div id="selecteur-profil-actif"></div>
+  </div>
 </header>
 
 <nav>
   <button data-vue="scan" class="actif">Scanner</button>
   <button data-vue="stock">Stock</button>
-  <button data-vue="recette">Recette</button>
+  <button data-vue="consommation">Consommation</button>
+  <button data-vue="courses">Courses</button>
   <button data-vue="historique">Historique</button>
-  <button data-vue="reglages">⚙</button>
+  <button data-vue="reglages">Réglages</button>
 </nav>
 
 <main>
 
-  <!-- VUE SCAN -->
+  <!-- ============ VUE SCAN ============ -->
   <section class="vue actif" id="vue-scan">
     <div class="carte">
       <h2>Caméra</h2>
@@ -275,578 +46,158 @@
     <div class="carte">
       <h2>Saisie manuelle</h2>
       <label for="input-code-manuel">Code-barres</label>
-      <div class="ligne-code">
-        <input type="text" id="input-code-manuel" placeholder="ex: 3017620422003" inputmode="numeric">
-        <button class="action" id="btn-chercher-manuel">Chercher</button>
+      <div style="display:flex; gap:8px;">
+        <input type="text" id="input-code-manuel" placeholder="ex: 3017620422003" inputmode="numeric" style="flex:1; margin-bottom:0;">
+        <button class="action petit" id="btn-chercher-manuel">Chercher</button>
       </div>
     </div>
 
     <div id="zone-resultat-scan"></div>
   </section>
 
-  <!-- VUE STOCK -->
+  <!-- ============ VUE STOCK ============ -->
   <section class="vue" id="vue-stock">
     <div class="carte">
       <h2>Ce qu'il reste à la maison</h2>
-      <div id="liste-stock"><div class="vide">Chargement…</div></div>
+      <div class="barre-outils-stock">
+        <input type="text" id="recherche-stock" placeholder="Rechercher un produit…">
+        <select id="tri-stock">
+          <option value="nom">Nom (A-Z)</option>
+          <option value="quantite_asc">Quantité (croissant)</option>
+          <option value="quantite_desc">Quantité (décroissant)</option>
+          <option value="recent">Ajout récent</option>
+        </select>
+      </div>
+      <div class="grille-stock" id="grille-stock"><div class="vide">Chargement…</div></div>
     </div>
   </section>
 
-  <!-- VUE RECETTE -->
-  <section class="vue" id="vue-recette">
+  <!-- ============ VUE CONSOMMATION ============ -->
+  <section class="vue" id="vue-consommation">
+
+    <div class="bascule-mode">
+      <button data-mode="recette" class="actif">🍳 Recette</button>
+      <button data-mode="libre">🥤 Consommation libre</button>
+    </div>
+
+    <!-- Mode Recette -->
+    <div id="panneau-mode-recette">
+      <div class="carte">
+        <h2>Nouvelle recette</h2>
+        <label for="nouvelle-recette-nom">Nom de la recette</label>
+        <input type="text" id="nouvelle-recette-nom" placeholder="ex: Lasagnes">
+
+        <label for="nouvelle-recette-parts">Nombre de parts</label>
+        <input type="number" id="nouvelle-recette-parts" value="4" min="1">
+
+        <label for="nouvelle-recette-cuisson">Étapes de cuisson (optionnel)</label>
+        <textarea id="nouvelle-recette-cuisson" placeholder="ex: Four 180°C, 25 min"></textarea>
+
+        <label>Ingrédients</label>
+        <div id="liste-lignes-ingredients"></div>
+        <button class="action secondaire petit" id="btn-ajouter-ligne-ingredient" style="margin-bottom:12px;">+ Ajouter un ingrédient</button>
+
+        <button class="action" id="btn-creer-recette">Créer la recette (décompte le stock)</button>
+      </div>
+
+      <div class="carte">
+        <h2>Recettes en cours</h2>
+        <div id="liste-recettes-existantes"><div class="vide">Chargement…</div></div>
+      </div>
+    </div>
+
+    <!-- Mode Consommation libre -->
+    <div id="panneau-mode-libre" style="display:none;">
+      <div class="carte">
+        <h2>Snack, boisson, grignotage…</h2>
+        <label for="libre-select-produit">Produit</label>
+        <select id="libre-select-produit"></select>
+
+        <label for="libre-quantite">Quantité consommée</label>
+        <input type="number" id="libre-quantite" placeholder="ex: 30">
+
+        <label for="libre-profil">Qui ?</label>
+        <select id="libre-profil"></select>
+
+        <label for="libre-contexte">Précision (optionnel)</label>
+        <input type="text" id="libre-contexte" placeholder="ex: Apéro">
+
+        <button class="action" id="btn-valider-libre">Décompter du stock</button>
+      </div>
+    </div>
+
+    <div id="zone-resultat-consommation"></div>
+  </section>
+
+  <!-- ============ VUE COURSES ============ -->
+  <section class="vue" id="vue-courses">
     <div class="carte">
-      <h2>Consommer un ingrédient</h2>
-      <label for="select-produit-recette">Produit en stock</label>
-      <select id="select-produit-recette"></select>
-
-      <label for="input-quantite-recette">Quantité utilisée (grammes)</label>
-      <input type="number" id="input-quantite-recette" placeholder="ex: 50">
-
-      <label for="input-nom-recette">Nom de la recette (optionnel)</label>
-      <input type="text" id="input-nom-recette" placeholder="ex: Lasagnes">
-
-      <button class="action" id="btn-consommer">Décompter du stock</button>
+      <h2>
+        Liste de courses
+        <button class="action secondaire petit" id="btn-suggerer-courses">+ Articles épuisés</button>
+      </h2>
+      <div class="zone-ajout-course">
+        <input type="text" id="input-nouvel-article-course" placeholder="Ajouter un article…">
+        <button class="action petit" id="btn-ajouter-article-course">Ajouter</button>
+      </div>
+      <div id="liste-courses"><div class="vide">Chargement…</div></div>
+      <button class="action" id="btn-valider-achats" style="display:none; margin-top:12px;">Valider les achats</button>
+      <div id="zone-resultat-courses"></div>
     </div>
-    <div id="zone-resultat-recette"></div>
   </section>
 
-  <!-- VUE HISTORIQUE -->
+  <!-- ============ VUE HISTORIQUE ============ -->
   <section class="vue" id="vue-historique">
     <div class="carte">
       <h2>Derniers mouvements</h2>
+      <div class="filtres-historique">
+        <select id="filtre-profil-historique"></select>
+        <select id="filtre-type-historique">
+          <option value="">Tous les types</option>
+          <option value="ajout">Ajouts</option>
+          <option value="consommation_libre">Consommations</option>
+          <option value="recette_part">Recettes</option>
+          <option value="correction_stock">Corrections</option>
+        </select>
+      </div>
       <div id="liste-historique"><div class="vide">Chargement…</div></div>
     </div>
   </section>
 
-  <!-- VUE RÉGLAGES -->
+  <!-- ============ VUE RÉGLAGES ============ -->
   <section class="vue" id="vue-reglages">
     <div class="carte">
       <h2>Adresse du serveur</h2>
-      <p style="font-size:0.8rem; color:#6b6555; margin-top:-4px;">
+      <p style="font-size:0.8rem; color:var(--gris-texte); margin-top:-4px;">
         L'adresse Tailscale de ton PC (ex: <code>http://100.79.206.27:8000</code>).
-        À changer ici seulement si l'adresse change un jour — pas besoin de
-        toucher au code.
       </p>
       <label for="input-api-url">URL de l'API</label>
       <input type="text" id="input-api-url" placeholder="http://100.79.206.27:8000">
       <button class="action" id="btn-sauver-api">Enregistrer</button>
       <div id="zone-resultat-reglages"></div>
     </div>
+
+    <div class="carte">
+      <h2>
+        Profils du foyer
+        <button class="action secondaire petit" id="btn-nouveau-profil">+ Nouveau profil</button>
+      </h2>
+      <div id="liste-profils-reglages"><div class="vide">Chargement…</div></div>
+    </div>
   </section>
 
 </main>
 
-<script>
-// L'adresse de l'API (ton PC via Tailscale) est configurable depuis l'appli,
-// pas codée en dur : elle est stockée dans le localStorage du téléphone.
-// Ça évite de devoir republier le code si jamais l'adresse Tailscale change.
-function getApiUrl() {
-  return localStorage.getItem("alimentation_api_url") || "";
-}
-function setApiUrl(url) {
-  localStorage.setItem("alimentation_api_url", url.replace(/\/$/, "")); // retire le / final si présent
-}
-const API = { get url() { return getApiUrl(); } };
-
-// Enregistrement du service worker (rend l'appli installable + mises à jour auto)
-if ("serviceWorker" in navigator) {
-  window.addEventListener("load", () => {
-    navigator.serviceWorker.register("service-worker.js").catch(() => {
-      // Si le service worker échoue (ex: testé en http simple), l'appli
-      // continue de fonctionner normalement, juste sans mode "installable".
-    });
-  });
-}
-
-// ---------- Vue réglages ----------
-document.getElementById("input-api-url").value = getApiUrl();
-
-document.getElementById("btn-sauver-api").addEventListener("click", () => {
-  const valeur = document.getElementById("input-api-url").value.trim();
-  const zone = document.getElementById("zone-resultat-reglages");
-  if (!valeur) {
-    zone.innerHTML = `<div class="resultat erreur">Merci de renseigner une adresse.</div>`;
-    return;
-  }
-  setApiUrl(valeur);
-  zone.innerHTML = `<div class="resultat">✓ Adresse enregistrée : ${getApiUrl()}</div>`;
-});
-
-function verifierApiConfiguree() {
-  if (!getApiUrl()) {
-    document.querySelectorAll("nav button").forEach(b => b.classList.remove("actif"));
-    document.querySelectorAll(".vue").forEach(v => v.classList.remove("actif"));
-    document.querySelector('[data-vue="reglages"]').classList.add("actif");
-    document.getElementById("vue-reglages").classList.add("actif");
-    document.getElementById("zone-resultat-reglages").innerHTML =
-      `<div class="resultat erreur">Configure d'abord l'adresse de ton serveur pour commencer.</div>`;
-    return false;
-  }
-  return true;
-}
-verifierApiConfiguree();
-
-// ---------- Navigation entre vues ----------
-document.querySelectorAll("nav button").forEach(btn => {
-  btn.addEventListener("click", () => {
-    if (btn.dataset.vue !== "reglages" && !getApiUrl()) {
-      verifierApiConfiguree();
-      return;
-    }
-    document.querySelectorAll("nav button").forEach(b => b.classList.remove("actif"));
-    document.querySelectorAll(".vue").forEach(v => v.classList.remove("actif"));
-    btn.classList.add("actif");
-    document.getElementById("vue-" + btn.dataset.vue).classList.add("actif");
-    if (btn.dataset.vue === "stock") chargerStock();
-    if (btn.dataset.vue === "recette") chargerSelectProduits();
-    if (btn.dataset.vue === "historique") chargerHistorique();
-  });
-});
-
-// ---------- Scan caméra ----------
-let scannerActif = null;          // instance Html5Qrcode (fallback)
-let detecteurNatifActif = null;   // { stream, video, intervalId } si BarcodeDetector natif utilisé
-let derniereLectureNative = null; // pour la double-confirmation anti-faux-positif
-
-// Vérifie le chiffre de contrôle d'un code EAN-13 : le 13e chiffre est
-// calculé à partir des 12 premiers. Si ça ne correspond pas, la lecture
-// caméra a probablement mal interprété une ou plusieurs barres — on rejette
-// plutôt que d'envoyer un code-barres faux à l'API.
-function checksumEAN13Valide(code) {
-  if (!/^\d{13}$/.test(code)) return true; // pas un EAN-13 (EAN-8, Code128...) : pas de vérif possible, on laisse passer
-  const chiffres = code.split("").map(Number);
-  const somme = chiffres.slice(0, 12).reduce((acc, chiffre, i) => acc + chiffre * (i % 2 === 0 ? 1 : 3), 0);
-  const checksumAttendu = (10 - (somme % 10)) % 10;
-  return checksumAttendu === chiffres[12];
-}
-
-function arreterScan() {
-  const bouton = document.getElementById("btn-camera");
-  if (scannerActif) {
-    scannerActif.stop();
-    scannerActif = null;
-  }
-  if (detecteurNatifActif) {
-    clearInterval(detecteurNatifActif.intervalId);
-    detecteurNatifActif.stream.getTracks().forEach(track => track.stop());
-    detecteurNatifActif = null;
-  }
-  derniereLectureNative = null;
-  document.getElementById("lecteur-camera").innerHTML = "";
-  bouton.textContent = "Activer la caméra";
-}
-
-function onCodeBarreValide(codeDetecte) {
-  arreterScan();
-  // Affiche le code détecté avant de lancer la recherche, pour que tu
-  // puisses vérifier visuellement que c'est bien le bon produit avant
-  // l'appel réseau (utile si jamais deux codes étaient visibles à la fois).
-  document.getElementById("input-code-manuel").value = codeDetecte;
-  afficherResultatScan(`Code détecté : ${codeDetecte} — recherche en cours…`, false);
-  chercherProduit(codeDetecte);
-}
-
-// Utilise l'API native du navigateur (BarcodeDetector), qui s'appuie sur le
-// moteur de vision du système (Android/macOS) plutôt que sur du JS pur —
-// nettement plus rapide et fiable que la lib de repli quand disponible.
-async function demarrerScanNatif() {
-  const detecteur = new BarcodeDetector({
-    formats: ["ean_13", "ean_8", "upc_a", "upc_e", "code_128"],
-  });
-
-  const video = document.createElement("video");
-  video.setAttribute("playsinline", "true"); // requis sur iOS pour éviter le plein écran auto
-  video.style.width = "100%";
-  video.style.borderRadius = "2px";
-  document.getElementById("lecteur-camera").appendChild(video);
-
-  const stream = await navigator.mediaDevices.getUserMedia({
-    video: {
-      facingMode: { ideal: "environment" },
-      width: { ideal: 1920 },   // résolution haute : plus de détail pour distinguer les barres fines
-      height: { ideal: 1080 },
-      advanced: [{ focusMode: "continuous" }],
-    },
-  });
-  video.srcObject = stream;
-  await video.play();
-
-  const intervalId = setInterval(async () => {
-    try {
-      const codes = await detecteur.detect(video);
-      if (codes.length === 0) return;
-
-      const valeur = codes[0].rawValue;
-      if (!checksumEAN13Valide(valeur)) return; // lecture suspecte, on ignore
-
-      // Double-confirmation : on attend que la même valeur soit lue deux
-      // fois de suite avant de valider, pour éliminer les faux positifs
-      // dus à un flou transitoire pendant que l'image se stabilise.
-      if (derniereLectureNative === valeur) {
-        onCodeBarreValide(valeur);
-      } else {
-        derniereLectureNative = valeur;
-      }
-    } catch (e) {
-      // détection échouée sur cette frame, on retente à la prochaine
-    }
-  }, 200);
-
-  detecteurNatifActif = { stream, video, intervalId };
-}
-
-// Repli sur html5-qrcode si BarcodeDetector n'est pas supporté par le
-// navigateur (Safari, Firefox notamment).
-async function demarrerScanFallback() {
-  scannerActif = new Html5Qrcode("lecteur-camera", {
-    formatsToSupport: [
-      Html5QrcodeSupportedFormats.EAN_13,
-      Html5QrcodeSupportedFormats.EAN_8,
-      Html5QrcodeSupportedFormats.UPC_A,
-      Html5QrcodeSupportedFormats.UPC_E,
-      Html5QrcodeSupportedFormats.CODE_128,
-    ],
-  });
-
-  const config = {
-    fps: 10,
-    qrbox: { width: 280, height: 120 },
-    aspectRatio: 1.7,
-    videoConstraints: {
-      focusMode: "continuous",
-      advanced: [{ focusMode: "continuous" }],
-      width: { ideal: 1920 },
-      height: { ideal: 1080 },
-    },
-  };
-
-  const cameras = await Html5Qrcode.getCameras();
-  if (!cameras || cameras.length === 0) {
-    afficherResultatScan("Aucune caméra détectée sur cet appareil.", true);
-    scannerActif = null;
-    return;
-  }
-  const camArriere = cameras.find(c => /back|rear|environment/i.test(c.label));
-  const idCamera = camArriere ? camArriere.id : cameras[0].id;
-
-  let derniereLectureFallback = null;
-  await scannerActif.start(
-    idCamera,
-    config,
-    (codeDetecte) => {
-      if (!checksumEAN13Valide(codeDetecte)) return;
-      // Même logique de double-confirmation que le mode natif.
-      if (derniereLectureFallback === codeDetecte) {
-        onCodeBarreValide(codeDetecte);
-      } else {
-        derniereLectureFallback = codeDetecte;
-      }
-    }
-  );
-}
-
-document.getElementById("btn-camera").addEventListener("click", async () => {
-  const bouton = document.getElementById("btn-camera");
-  if (scannerActif || detecteurNatifActif) {
-    arreterScan();
-    return;
-  }
-
-  try {
-    if ("BarcodeDetector" in window) {
-      await demarrerScanNatif();
-    } else {
-      await demarrerScanFallback();
-    }
-    bouton.textContent = "Désactiver la caméra";
-  } catch (err) {
-    afficherResultatScan(`Impossible d'accéder à la caméra : ${err}. Vérifie que tu es bien en HTTPS ou en localhost, et que tu as autorisé l'accès caméra.`, true);
-    arreterScan();
-  }
-});
-
-document.getElementById("btn-chercher-manuel").addEventListener("click", () => {
-  const code = document.getElementById("input-code-manuel").value.trim();
-  if (code) chercherProduit(code);
-});
-
-let dernierProduitTrouve = null;
-
-async function chercherProduit(code) {
-  afficherResultatScan("Recherche en cours…", false);
-  try {
-    const resp = await fetch(`${API.url}/produit/${code}`);
-    const data = await resp.json();
-    if (!resp.ok) {
-      afficherResultatScan(data.detail || "Produit introuvable.", true);
-      return;
-    }
-    dernierProduitTrouve = data;
-    afficherFicheProduit(data);
-  } catch (e) {
-    afficherResultatScan("Erreur réseau : impossible de contacter le serveur.", true);
-  }
-}
-
-function afficherResultatScan(message, estErreur) {
-  document.getElementById("zone-resultat-scan").innerHTML =
-    `<div class="resultat ${estErreur ? 'erreur' : ''}">${message}</div>`;
-}
-
-function afficherFicheProduit(p) {
-  const nomManquant = !p.nom || p.nom === "Nom inconnu";
-  const unite = p.unite_mesure || "g";
-  // Quantité numérique du contenant : si pas encore connue, on essaie de
-  // l'extraire depuis quantite_unite (ex: "1,5 l" -> 1500), sinon vide.
-  const quantiteNumerique = extraireQuantiteNumerique(p.quantite_unite, unite);
-
-  document.getElementById("zone-resultat-scan").innerHTML = `
-    <div class="carte">
-      <label for="champ-nom">Nom du produit</label>
-      <input type="text" id="champ-nom" value="${nomManquant ? '' : echapper(p.nom)}"
-             placeholder="${nomManquant ? 'Nom inconnu — complète-le ici' : ''}">
-
-      <label for="champ-marque">Marque</label>
-      <input type="text" id="champ-marque" value="${p.marque ? echapper(p.marque) : ''}" placeholder="ex: Lipton">
-
-      <div style="display:flex; gap:8px;">
-        <div style="flex:1;">
-          <label for="champ-quantite-totale">Quantité du contenant</label>
-          <input type="number" id="champ-quantite-totale" value="${quantiteNumerique ?? ''}"
-                 placeholder="ex: 1500" style="${quantiteNumerique === null ? 'border-color:var(--rouge-alerte);' : ''}">
-        </div>
-        <div style="width:90px;">
-          <label for="champ-unite">Unité</label>
-          <select id="champ-unite">
-            <option value="g" ${unite === 'g' ? 'selected' : ''}>g</option>
-            <option value="ml" ${unite === 'ml' ? 'selected' : ''}>ml</option>
-          </select>
-        </div>
-      </div>
-      ${quantiteNumerique === null ? `<div class="resultat erreur" style="margin-top:-6px;">Quantité du contenant inconnue — obligatoire pour ajouter au stock.</div>` : ""}
-
-      <div class="macros-grille" style="margin-top:8px;">
-        <div class="macro">
-          Énergie (kcal/100${unite === 'ml' ? 'ml' : 'g'})
-          <input type="number" id="champ-kcal" value="${p.energie_kcal_100g ?? ''}" style="margin:4px 0 0; padding:6px;">
-        </div>
-        <div class="macro">
-          Protéines (g/100${unite === 'ml' ? 'ml' : 'g'})
-          <input type="number" id="champ-proteines" value="${p.proteines_100g ?? ''}" style="margin:4px 0 0; padding:6px;">
-        </div>
-        <div class="macro">
-          Glucides (g/100${unite === 'ml' ? 'ml' : 'g'})
-          <input type="number" id="champ-glucides" value="${p.glucides_100g ?? ''}" style="margin:4px 0 0; padding:6px;">
-        </div>
-        <div class="macro">
-          Lipides (g/100${unite === 'ml' ? 'ml' : 'g'})
-          <input type="number" id="champ-lipides" value="${p.lipides_100g ?? ''}" style="margin:4px 0 0; padding:6px;">
-        </div>
-        <div class="macro">
-          Sucres (g/100${unite === 'ml' ? 'ml' : 'g'})
-          <input type="number" id="champ-sucres" value="${p.sucres_100g ?? ''}" style="margin:4px 0 0; padding:6px;">
-        </div>
-        <div class="macro">
-          Sel (g/100${unite === 'ml' ? 'ml' : 'g'})
-          <input type="number" id="champ-sel" value="${p.sel_100g ?? ''}" style="margin:4px 0 0; padding:6px;">
-        </div>
-      </div>
-
-      <label for="input-quantite-ajout" style="margin-top:12px;">Quantité ajoutée au stock</label>
-      <input type="number" id="input-quantite-ajout" placeholder="laisser vide = quantité totale du contenant">
-      <button class="action" id="btn-ajouter-stock">Enregistrer et ajouter au stock</button>
-    </div>
-  `;
-  document.getElementById("btn-ajouter-stock").addEventListener("click", () => enregistrerEtAjouter(p.code_barres));
-}
-
-// Tente d'extraire un nombre depuis le texte "quantite_unite" (ex: "1,5 l" -> 1500 si unite=ml)
-function extraireQuantiteNumerique(texte, unite) {
-  if (!texte) return null;
-  const match = texte.toLowerCase().replace(",", ".").match(/([\d.]+)\s*(kg|g|l|cl|ml)\b/);
-  if (!match) return null;
-  const valeur = parseFloat(match[1]);
-  const u = match[2];
-  const conversions = { g: 1, kg: 1000, ml: 1, cl: 10, l: 1000 };
-  return valeur * (conversions[u] ?? 1);
-}
-
-function echapper(texte) {
-  const div = document.createElement("div");
-  div.textContent = texte;
-  return div.innerHTML;
-}
-
-function fmt(v) { return v === null || v === undefined ? "?" : v; }
-
-// Enregistre les champs édités (nom, quantité, macros) puis ajoute au stock,
-// en un seul geste — plus besoin de passer par un bouton "renseigner les infos".
-async function enregistrerEtAjouter(codeBarres) {
-  const valeur = (id) => {
-    const v = document.getElementById(id).value;
-    return v === "" ? null : parseFloat(v);
-  };
-  const texte = (id) => document.getElementById(id).value.trim();
-
-  const quantiteTotale = valeur("champ-quantite-totale");
-  const uniteMesure = document.getElementById("champ-unite").value;
-
-  if (quantiteTotale === null) {
-    afficherResultatScan("Merci de renseigner la quantité du contenant (obligatoire).", true);
-    return;
-  }
-
-  const payload = {
-    nom: texte("champ-nom") || null,
-    marque: texte("champ-marque") || null,
-    quantite_totale: quantiteTotale,
-    unite_mesure: uniteMesure,
-    energie_kcal_100g: valeur("champ-kcal"),
-    proteines_100g: valeur("champ-proteines"),
-    glucides_100g: valeur("champ-glucides"),
-    lipides_100g: valeur("champ-lipides"),
-    sucres_100g: valeur("champ-sucres"),
-    sel_100g: valeur("champ-sel"),
-  };
-
-  try {
-    // 1. Sauvegarde les infos produit (nom, quantité, macros) éditées
-    const respMaj = await fetch(`${API.url}/produit/${codeBarres}`, {
-      method: "PUT",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(payload),
-    });
-    if (!respMaj.ok) {
-      const err = await respMaj.json();
-      afficherResultatScan(err.detail || "Erreur lors de l'enregistrement des infos produit.", true);
-      return;
-    }
-
-    // 2. Ajoute la quantité saisie au stock (ou la quantité totale du contenant si vide)
-    const qteAjout = document.getElementById("input-quantite-ajout").value;
-    const quantiteAjoutee = qteAjout ? parseFloat(qteAjout) : quantiteTotale;
-
-    const respStock = await fetch(`${API.url}/stock/ajouter`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ code_barres: codeBarres, quantite_g: quantiteAjoutee }),
-    });
-    const dataStock = await respStock.json();
-    if (!respStock.ok) {
-      afficherResultatScan(dataStock.detail, true);
-      return;
-    }
-    afficherResultatScan(`✓ ${dataStock.message}`, false);
-    document.getElementById("input-code-manuel").value = "";
-  } catch (e) {
-    afficherResultatScan("Erreur réseau lors de l'enregistrement.", true);
-  }
-}
-
-// ---------- Vue stock ----------
-async function chargerStock() {
-  const conteneur = document.getElementById("liste-stock");
-  try {
-    const resp = await fetch(`${API.url}/stock`);
-    const items = await resp.json();
-    if (items.length === 0) {
-      conteneur.innerHTML = `<div class="vide">Rien en stock pour l'instant. Scanne tes courses !</div>`;
-      return;
-    }
-    conteneur.innerHTML = items.map(item => `
-      <div class="item-stock">
-        <div>
-          <div class="nom">${item.nom}</div>
-          <div class="marque">${item.marque || ""}</div>
-        </div>
-        <div class="quantite">${Math.round(item.total_restant_g)} ${item.unite_mesure || 'g'}</div>
-      </div>
-    `).join("");
-  } catch (e) {
-    conteneur.innerHTML = `<div class="vide">Erreur de chargement du stock.</div>`;
-  }
-}
-
-// ---------- Vue recette / consommation ----------
-async function chargerSelectProduits() {
-  const select = document.getElementById("select-produit-recette");
-  try {
-    const resp = await fetch(`${API.url}/stock`);
-    const items = await resp.json();
-    select.innerHTML = items.map(item =>
-      `<option value="${item.code_barres}">${item.nom} (${Math.round(item.total_restant_g)} ${item.unite_mesure || 'g'} restants)</option>`
-    ).join("") || `<option value="">Aucun produit en stock</option>`;
-  } catch (e) {
-    select.innerHTML = `<option value="">Erreur de chargement</option>`;
-  }
-}
-
-document.getElementById("btn-consommer").addEventListener("click", async () => {
-  const code = document.getElementById("select-produit-recette").value;
-  const qte = parseFloat(document.getElementById("input-quantite-recette").value);
-  const contexte = document.getElementById("input-nom-recette").value;
-  const zone = document.getElementById("zone-resultat-recette");
-
-  if (!code || !qte) {
-    zone.innerHTML = `<div class="resultat erreur">Choisis un produit et une quantité.</div>`;
-    return;
-  }
-
-  try {
-    const resp = await fetch(`${API.url}/stock/consommer`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ code_barres: code, quantite_g: qte, contexte: contexte || null }),
-    });
-    const data = await resp.json();
-    if (!resp.ok) {
-      zone.innerHTML = `<div class="resultat erreur">${data.detail}</div>`;
-      return;
-    }
-    const m = data.macros_consommees;
-    zone.innerHTML = `
-      <div class="carte">
-        <h2>✓ Décompté</h2>
-        <div class="resultat">
-          <strong>${fmt(m.energie_kcal)} kcal</strong> consommées
-          <div class="macros-grille">
-            <div class="macro">Protéines <span class="val">${fmt(m.proteines_g)} g</span></div>
-            <div class="macro">Glucides <span class="val">${fmt(m.glucides_g)} g</span></div>
-            <div class="macro">Lipides <span class="val">${fmt(m.lipides_g)} g</span></div>
-            <div class="macro">Sel <span class="val">${fmt(m.sel_g)} g</span></div>
-          </div>
-        </div>
-      </div>
-    `;
-    chargerSelectProduits(); // rafraîchir les quantités restantes affichées
-  } catch (e) {
-    zone.innerHTML = `<div class="resultat erreur">Erreur réseau.</div>`;
-  }
-});
-
-// ---------- Vue historique ----------
-async function chargerHistorique() {
-  const conteneur = document.getElementById("liste-historique");
-  try {
-    const resp = await fetch(`${API.url}/historique`);
-    const items = await resp.json();
-    if (items.length === 0) {
-      conteneur.innerHTML = `<div class="vide">Aucun mouvement encore.</div>`;
-      return;
-    }
-    conteneur.innerHTML = items.map(h => `
-      <div class="item-historique">
-        <span class="${h.type_mouvement === 'ajout' ? 'tag-ajout' : 'tag-conso'}">
-          ${h.type_mouvement === 'ajout' ? '+ ' : '− '}${Math.round(h.quantite_g)}g
-        </span>
-        <span>${h.nom}${h.contexte ? ' · ' + h.contexte : ''}</span>
-      </div>
-    `).join("");
-  } catch (e) {
-    conteneur.innerHTML = `<div class="vide">Erreur de chargement.</div>`;
-  }
-}
-</script>
+<script src="js/api.js"></script>
+<script src="js/modale.js"></script>
+<script src="js/profils.js"></script>
+<script src="js/produit.js"></script>
+<script src="js/scanner.js"></script>
+<script src="js/stock.js"></script>
+<script src="js/consommation.js"></script>
+<script src="js/historique.js"></script>
+<script src="js/courses.js"></script>
+<script src="js/app.js"></script>
 
 </body>
 </html>
