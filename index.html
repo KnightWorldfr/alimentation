@@ -2,10 +2,10 @@
 <html lang="fr">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>Alimentation</title>
 <link rel="manifest" href="manifest.json">
-<meta name="theme-color" content="#2e4630">
+<meta name="theme-color" content="#10b981">
 <link rel="apple-touch-icon" href="icon-192.png">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html5-qrcode/2.3.8/html5-qrcode.min.js"></script>
 <link rel="stylesheet" href="css/base.css">
@@ -16,21 +16,42 @@
 
 <header>
   <div class="ligne-titre">
-    <div>
-      <h1>🍽️ Alimentation</h1>
-      <div class="sous-titre">Stock, calories, recettes &amp; courses</div>
+    <div class="bloc-titre">
+      <span class="logo-emoji">🍽️</span>
+      <div>
+        <h1>Alimentation</h1>
+        <div class="sous-titre">Stock, calories, recettes &amp; courses</div>
+      </div>
     </div>
     <div id="selecteur-profil-actif"></div>
   </div>
 </header>
 
 <nav>
-  <button data-vue="scan" class="actif">Scanner</button>
-  <button data-vue="stock">Stock</button>
-  <button data-vue="consommation">Consommation</button>
-  <button data-vue="courses">Courses</button>
-  <button data-vue="historique">Historique</button>
-  <button data-vue="reglages">Réglages</button>
+  <button data-vue="scan" class="actif">
+    <span class="icone-nav">📷</span>
+    <span class="label-nav">Scan</span>
+  </button>
+  <button data-vue="stock">
+    <span class="icone-nav">📦</span>
+    <span class="label-nav">Stock</span>
+  </button>
+  <button data-vue="consommation">
+    <span class="icone-nav">🍳</span>
+    <span class="label-nav">Repas</span>
+  </button>
+  <button data-vue="courses">
+    <span class="icone-nav">🛒</span>
+    <span class="label-nav">Courses</span>
+  </button>
+  <button data-vue="historique">
+    <span class="icone-nav">📋</span>
+    <span class="label-nav">Suivi</span>
+  </button>
+  <button data-vue="reglages">
+    <span class="icone-nav">⚙️</span>
+    <span class="label-nav">Réglages</span>
+  </button>
 </nav>
 
 <main>
@@ -168,7 +189,7 @@
   <section class="vue" id="vue-reglages">
     <div class="carte">
       <h2>Adresse du serveur</h2>
-      <p style="font-size:0.8rem; color:var(--gris-texte); margin-top:-4px;">
+      <p style="font-size:0.8rem; color:var(--texte-att); margin-top:-4px;">
         L'adresse Tailscale de ton PC (ex: <code>http://100.79.206.27:8000</code>).
       </p>
       <label for="input-api-url">URL de l'API</label>
