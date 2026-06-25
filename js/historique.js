@@ -72,7 +72,7 @@ function itemHistoriqueHtml(h) {
 
   let metaLignes = [];
   if (h.nom_profil) {
-    metaLignes.push(`<span class="badge-profil" style="background:${h.couleur_profil || '#4a6b4d'}">${echapperHtml(h.nom_profil)}</span>`);
+    metaLignes.push(`<span class="badge-profil" style="background:${h.couleur_profil || '#10b981'}">${echapperHtml(h.nom_profil)}</span>`);
   }
   if (h.nom_recette) metaLignes.push(`Recette : ${echapperHtml(h.nom_recette)}`);
   if (h.contexte && h.contexte !== h.nom_recette) metaLignes.push(echapperHtml(h.contexte));
