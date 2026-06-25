@@ -60,7 +60,7 @@ function carteStockHtml(item) {
         <div class="quantite ${faible ? 'faible' : ''}">${Math.round(item.total_restant_g)} ${item.unite_mesure || 'g'}</div>
       </div>
       <div class="kcal-info">${kcalInfo}</div>
-      <div class="barre-niveau ${faible ? 'faible' : ''}" style="width:${proportion}%"></div>
+      <div class="barre-niveau ${faible ? 'faible' : ''}" style="--niveau:${proportion}%"></div>
     </div>
   `;
 }
