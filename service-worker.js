@@ -7,7 +7,7 @@
 //
 // CACHE_VERSION : change ce numéro à chaque mise à jour notable de l'appli
 // pour forcer le téléphone à retélécharger les nouveaux fichiers.
-const CACHE_VERSION = "alimentation-v1";
+const CACHE_VERSION = "alimentation-v3";
 
 const FICHIERS_A_METTRE_EN_CACHE = [
   "./",
@@ -15,6 +15,19 @@ const FICHIERS_A_METTRE_EN_CACHE = [
   "./manifest.json",
   "./icon-192.png",
   "./icon-512.png",
+  "./css/base.css",
+  "./css/composants.css",
+  "./css/responsive.css",
+  "./js/api.js",
+  "./js/modale.js",
+  "./js/profils.js",
+  "./js/produit.js",
+  "./js/scanner.js",
+  "./js/stock.js",
+  "./js/consommation.js",
+  "./js/historique.js",
+  "./js/courses.js",
+  "./js/app.js",
 ];
 
 self.addEventListener("install", (event) => {
