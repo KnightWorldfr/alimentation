@@ -8,6 +8,8 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 
 async function initApp() {
+  initTheme();
+
   // Enregistrement du service worker (PWA installable + mises à jour auto)
   if ("serviceWorker" in navigator) {
     navigator.serviceWorker.register("service-worker.js").catch(() => {});
