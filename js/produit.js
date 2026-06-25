@@ -41,7 +41,7 @@ function afficherFicheProduit(p) {
         <div style="flex:1;">
           <label for="champ-quantite-totale">Quantité du contenant</label>
           <input type="number" id="champ-quantite-totale" value="${quantiteNumerique ?? ''}"
-                 placeholder="ex: 1500" style="${quantiteNumerique === null ? 'border-color:var(--rouge-alerte);' : ''}">
+                 placeholder="ex: 1500" style="${quantiteNumerique === null ? 'border-color:var(--alerte);' : ''}">
         </div>
         <div style="width:90px;">
           <label for="champ-unite">Unité</label>
