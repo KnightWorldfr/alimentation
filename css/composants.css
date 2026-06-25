@@ -1,25 +1,36 @@
 /* ============================================================
-   ALIMENTATION — feuille de style (2/3 : composants par écran)
+   ALIMENTATION — design system (2/3 : composants par écran)
    ============================================================ */
+
+/* ---------- VUE SCAN ---------- */
+
+#lecteur-camera {
+  width: 100%;
+  border-radius: var(--rayon-sm);
+  overflow: hidden;
+  margin-bottom: 14px;
+  background: var(--surface-alt);
+  min-height: 180px;
+}
 
 /* ---------- VUE STOCK ---------- */
 
 .barre-outils-stock {
   display: flex;
   gap: 8px;
-  margin-bottom: 12px;
-  flex-wrap: wrap;
+  margin-bottom: 14px;
 }
 
 .barre-outils-stock input[type="text"] {
   flex: 1;
-  min-width: 140px;
   margin-bottom: 0;
 }
 
 .barre-outils-stock select {
   width: auto;
   margin-bottom: 0;
+  flex-shrink: 0;
+  max-width: 130px;
 }
 
 .grille-stock {
@@ -29,62 +40,76 @@
 }
 
 .carte-stock {
-  background: var(--carte);
-  border: 1px solid var(--gris-ligne);
+  background: var(--surface);
+  border: 1px solid var(--bordure);
   border-radius: var(--rayon);
-  padding: 12px 14px;
+  padding: 14px 16px;
   cursor: pointer;
-  transition: border-color 0.15s, box-shadow 0.15s;
+  transition: border-color 0.15s, box-shadow 0.15s, transform 0.08s;
   position: relative;
   overflow: hidden;
 }
 
-.carte-stock:hover, .carte-stock:focus-visible {
-  border-color: var(--vert-principal);
-  box-shadow: 0 2px 6px rgba(31,42,31,0.1);
+.carte-stock:hover {
+  border-color: var(--accent);
+  box-shadow: var(--ombre);
 }
+.carte-stock:active { transform: scale(0.99); }
 
 .carte-stock .barre-niveau {
   position: absolute;
-  left: 0; bottom: 0;
+  left: 0; bottom: 0; right: 0;
   height: 3px;
-  background: var(--vert-principal);
+  background: var(--surface-alt);
 }
 
-.carte-stock .barre-niveau.faible { background: var(--rouge-alerte); }
+.carte-stock .barre-niveau::after {
+  content: "";
+  display: block;
+  height: 100%;
+  background: var(--accent);
+  width: var(--niveau, 100%);
+  border-radius: 0 3px 3px 0;
+}
+
+.carte-stock .barre-niveau.faible::after { background: var(--alerte); }
 
 .carte-stock .ligne-haut {
   display: flex;
   justify-content: space-between;
-  align-items: baseline;
-  gap: 8px;
+  align-items: flex-start;
+  gap: 10px;
 }
 
-.carte-stock .nom { font-weight: 700; font-size: 0.92rem; }
-.carte-stock .marque { color: var(--gris-texte); font-size: 0.72rem; margin-top: 2px; }
+.carte-stock .nom { font-weight: 700; font-size: 0.95rem; color: var(--texte); }
+.carte-stock .marque { color: var(--texte-faible); font-size: 0.76rem; margin-top: 2px; }
 .carte-stock .quantite {
-  font-weight: 700;
-  color: var(--vert-fonce);
+  font-weight: 800;
+  color: var(--accent-fonce);
   white-space: nowrap;
-  font-size: 0.95rem;
+  font-size: 0.98rem;
+  background: var(--accent-clair);
+  padding: 3px 9px;
+  border-radius: 20px;
 }
-.carte-stock .quantite.faible { color: var(--rouge-alerte); }
+.carte-stock .quantite.faible { color: var(--alerte); background: var(--alerte-clair); }
 
 .carte-stock .kcal-info {
-  font-size: 0.68rem;
-  color: var(--gris-texte);
-  margin-top: 4px;
+  font-size: 0.74rem;
+  color: var(--texte-faible);
+  margin-top: 8px;
 }
 
-/* Modale d'édition rapide */
+/* Modale */
 .fond-modale {
   position: fixed;
   inset: 0;
-  background: rgba(31,42,31,0.45);
+  background: rgba(20, 24, 31, 0.5);
   z-index: 50;
   display: flex;
   align-items: flex-end;
   justify-content: center;
+  backdrop-filter: blur(2px);
 }
 
 @media (min-width: 760px) {
@@ -92,131 +117,135 @@
 }
 
 .contenu-modale {
-  background: var(--papier);
-  border-radius: var(--rayon) var(--rayon) 0 0;
-  padding: 18px;
+  background: var(--surface);
+  border-radius: var(--rayon-lg) var(--rayon-lg) 0 0;
+  padding: 22px;
   width: 100%;
   max-width: 480px;
   max-height: 85vh;
   overflow-y: auto;
+  box-shadow: var(--ombre-lg);
 }
 
 @media (min-width: 760px) {
-  .contenu-modale { border-radius: var(--rayon); }
+  .contenu-modale { border-radius: var(--rayon-lg); }
 }
 
 .contenu-modale h3 {
-  margin: 0 0 14px;
-  font-size: 1rem;
-  text-transform: uppercase;
-  color: var(--vert-fonce);
+  font-size: 1.05rem;
+  font-weight: 800;
+  color: var(--texte);
+  margin: 0 0 16px;
 }
 
 /* ---------- VUE CONSOMMATION ---------- */
 
 .bascule-mode {
   display: flex;
-  border: 1px solid var(--vert-principal);
-  border-radius: var(--rayon);
-  overflow: hidden;
-  margin-bottom: 14px;
+  background: var(--surface-alt);
+  border-radius: var(--rayon-sm);
+  padding: 4px;
+  margin-bottom: 16px;
+  gap: 4px;
 }
 
 .bascule-mode button {
   flex: 1;
-  background: var(--papier);
+  background: transparent;
   border: none;
   padding: 10px;
   font-family: inherit;
-  font-size: 0.78rem;
-  text-transform: uppercase;
-  letter-spacing: 0.03em;
-  color: var(--vert-fonce);
+  font-size: 0.84rem;
+  font-weight: 700;
+  color: var(--texte-att);
   cursor: pointer;
+  border-radius: 6px;
+  transition: background 0.15s, color 0.15s;
 }
 
 .bascule-mode button.actif {
-  background: var(--vert-principal);
-  color: var(--papier);
-  font-weight: 700;
+  background: var(--surface);
+  color: var(--texte);
+  box-shadow: var(--ombre-sm);
 }
 
 .ligne-ingredient {
   display: flex;
   gap: 8px;
-  align-items: flex-end;
-  margin-bottom: 8px;
+  align-items: flex-start;
+  margin-bottom: 10px;
 }
 
 .ligne-ingredient select { flex: 2; margin-bottom: 0; }
 .ligne-ingredient input { flex: 1; margin-bottom: 0; }
 
 .ligne-ingredient .btn-retirer {
-  background: var(--rouge-clair);
-  color: var(--rouge-alerte);
+  background: var(--alerte-clair);
+  color: var(--alerte);
   border: none;
-  border-radius: var(--rayon);
-  width: 36px;
-  height: 38px;
+  border-radius: var(--rayon-sm);
+  width: 42px;
+  height: 44px;
   cursor: pointer;
   font-weight: 700;
   flex-shrink: 0;
+  font-size: 1rem;
 }
 
-.liste-ingredients-recette { margin: 10px 0; }
+.liste-cartes-recettes { display: grid; gap: 12px; }
 
-.item-ingredient-recette {
-  display: flex;
-  justify-content: space-between;
-  padding: 6px 0;
-  border-bottom: 1px solid var(--gris-ligne);
-  font-size: 0.82rem;
+.carte-recette {
+  background: var(--surface);
+  border: 1px solid var(--bordure);
+  border-radius: var(--rayon);
+  padding: 16px;
+}
+
+.carte-recette.terminee { opacity: 0.6; }
+
+.carte-recette .nom-recette { font-weight: 800; font-size: 1rem; color: var(--texte); }
+
+.carte-recette .meta-recette {
+  font-size: 0.78rem;
+  color: var(--texte-att);
+  margin: 4px 0 10px;
+  line-height: 1.5;
 }
 
 .barre-attribution-parts {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 10px;
   margin: 10px 0;
 }
 
 .barre-attribution-parts .jauge {
   flex: 1;
-  height: 10px;
-  background: var(--gris-ligne);
-  border-radius: 6px;
+  height: 8px;
+  background: var(--surface-alt);
+  border-radius: 8px;
   overflow: hidden;
 }
 
 .barre-attribution-parts .jauge .rempli {
   height: 100%;
-  background: var(--vert-principal);
-}
-
-.liste-cartes-recettes { display: grid; gap: 10px; }
-
-.carte-recette {
-  background: var(--carte);
-  border: 1px solid var(--gris-ligne);
-  border-radius: var(--rayon);
-  padding: 12px 14px;
-}
-
-.carte-recette.terminee { opacity: 0.7; }
-
-.carte-recette .nom-recette { font-weight: 700; font-size: 0.95rem; }
-
-.carte-recette .meta-recette {
-  font-size: 0.72rem;
-  color: var(--gris-texte);
-  margin: 4px 0 8px;
+  background: var(--accent);
+  border-radius: 8px;
+  transition: width 0.3s;
 }
 
 .liste-attributions {
   display: flex;
   flex-wrap: wrap;
   gap: 6px;
-  margin-top: 8px;
+  margin-top: 10px;
+}
+
+.boutons-carte-recette {
+  display: flex;
+  gap: 8px;
+  margin-top: 12px;
+  flex-wrap: wrap;
 }
 
 /* ---------- VUE HISTORIQUE ---------- */
@@ -224,91 +253,97 @@
 .filtres-historique {
   display: flex;
   gap: 8px;
-  margin-bottom: 12px;
-  flex-wrap: wrap;
+  margin-bottom: 14px;
 }
 
-.filtres-historique select { margin-bottom: 0; width: auto; flex: 1; min-width: 110px; }
+.filtres-historique select { margin-bottom: 0; flex: 1; min-width: 0; }
 
 .item-historique {
   display: flex;
   align-items: flex-start;
-  gap: 10px;
-  padding: 10px 0;
-  border-bottom: 1px solid var(--gris-ligne);
-  font-size: 0.82rem;
+  gap: 12px;
+  padding: 12px 0;
+  border-bottom: 1px solid var(--bordure);
+  font-size: 0.85rem;
 }
 
+.item-historique:last-child { border-bottom: none; }
+
 .item-historique .icone-mouvement {
-  width: 28px;
-  height: 28px;
+  width: 34px;
+  height: 34px;
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 0.85rem;
+  font-size: 0.95rem;
   flex-shrink: 0;
 }
 
-.icone-mouvement.ajout { background: var(--vert-clair); color: var(--vert-fonce); }
-.icone-mouvement.consommation_libre { background: var(--terracotta-clair); color: var(--terracotta); }
-.icone-mouvement.recette_part { background: #e8e3f5; color: #5b3f9e; }
-.icone-mouvement.correction_stock { background: #f0f0f0; color: var(--gris-texte); }
+.icone-mouvement.ajout { background: var(--accent-clair); color: var(--accent-fonce); }
+.icone-mouvement.consommation_libre { background: #fef3e2; color: #d97706; }
+.icone-mouvement.recette_part { background: #f3e8ff; color: #7c3aed; }
+.icone-mouvement.correction_stock { background: var(--surface-alt); color: var(--texte-att); }
 
-.item-historique .details { flex: 1; }
-.item-historique .ligne-principale { display: flex; justify-content: space-between; gap: 8px; }
+.item-historique .details { flex: 1; min-width: 0; }
+.item-historique .ligne-principale { display: flex; justify-content: space-between; gap: 8px; font-weight: 600; }
 .item-historique .quantite-mouvement { font-weight: 700; white-space: nowrap; }
-.item-historique .meta { font-size: 0.7rem; color: var(--gris-texte); margin-top: 2px; }
+.item-historique .meta { font-size: 0.74rem; color: var(--texte-faible); margin-top: 3px; }
 
 /* ---------- VUE COURSES ---------- */
 
 .item-course {
   display: flex;
   align-items: center;
-  gap: 10px;
-  padding: 10px 0;
-  border-bottom: 1px solid var(--gris-ligne);
+  gap: 12px;
+  padding: 12px 0;
+  border-bottom: 1px solid var(--bordure);
 }
 
-.item-course.achete { opacity: 0.5; }
+.item-course:last-child { border-bottom: none; }
+
+.item-course.achete { opacity: 0.45; }
 .item-course.achete .nom-article { text-decoration: line-through; }
 
 .case-course {
-  width: 22px;
-  height: 22px;
-  border: 2px solid var(--vert-principal);
-  border-radius: 4px;
+  width: 26px;
+  height: 26px;
+  border: 2px solid var(--bordure);
+  border-radius: 50%;
   flex-shrink: 0;
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
-  background: var(--papier);
+  background: var(--surface);
+  transition: background 0.15s, border-color 0.15s;
+  font-size: 0.8rem;
+  color: white;
 }
 
 .case-course.cochee {
-  background: var(--vert-principal);
-  color: white;
-  font-size: 0.8rem;
+  background: var(--accent);
+  border-color: var(--accent);
 }
 
-.item-course .infos-article { flex: 1; }
-.item-course .nom-article { font-weight: 700; font-size: 0.88rem; }
-.item-course .qte-prevue { font-size: 0.72rem; color: var(--gris-texte); }
+.item-course .infos-article { flex: 1; min-width: 0; }
+.item-course .nom-article { font-weight: 600; font-size: 0.9rem; }
+.item-course .qte-prevue { font-size: 0.74rem; color: var(--texte-faible); margin-top: 2px; }
 
 .item-course .btn-suppr-course {
   background: none;
   border: none;
-  color: var(--rouge-alerte);
+  color: var(--texte-faible);
   font-size: 1.1rem;
   cursor: pointer;
-  padding: 4px 8px;
+  padding: 6px;
+  flex-shrink: 0;
 }
 
 .zone-ajout-course {
   display: flex;
   gap: 8px;
-  margin-bottom: 14px;
+  margin-bottom: 16px;
 }
 
 .zone-ajout-course input { flex: 1; margin-bottom: 0; }
@@ -318,36 +353,56 @@
 .carte-profil {
   display: flex;
   align-items: center;
-  gap: 12px;
-  padding: 12px;
-  border: 1px solid var(--gris-ligne);
+  gap: 14px;
+  padding: 14px;
+  border: 1px solid var(--bordure);
   border-radius: var(--rayon);
-  margin-bottom: 8px;
-  background: var(--carte);
+  margin-bottom: 10px;
+  background: var(--surface);
+  cursor: pointer;
+  transition: border-color 0.15s;
 }
+
+.carte-profil:hover { border-color: var(--accent); }
 
 .carte-profil .pastille-profil {
-  width: 36px;
-  height: 36px;
-  font-size: 0.95rem;
+  width: 44px;
+  height: 44px;
+  font-size: 1.05rem;
+  flex-shrink: 0;
 }
 
-.carte-profil .infos-profil { flex: 1; }
-.carte-profil .nom-profil { font-weight: 700; }
-.carte-profil .meta-profil { font-size: 0.7rem; color: var(--gris-texte); }
+.carte-profil .infos-profil { flex: 1; min-width: 0; }
+.carte-profil .nom-profil { font-weight: 700; font-size: 0.95rem; }
+.carte-profil .meta-profil { font-size: 0.76rem; color: var(--texte-faible); margin-top: 2px; }
+
+.btn-suppr-profil-reglages {
+  background: none;
+  border: none;
+  color: var(--texte-faible);
+  font-size: 1.1rem;
+  cursor: pointer;
+  padding: 6px;
+  flex-shrink: 0;
+}
 
 .swatches-couleur {
   display: flex;
-  gap: 8px;
-  margin-bottom: 12px;
+  gap: 10px;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
 }
 
 .swatch-couleur {
-  width: 32px;
-  height: 32px;
+  width: 36px;
+  height: 36px;
   border-radius: 50%;
   cursor: pointer;
-  border: 2px solid transparent;
+  border: 3px solid transparent;
+  transition: border-color 0.15s, transform 0.1s;
 }
 
-.swatch-couleur.selectionne { border-color: var(--encre); }
+.swatch-couleur.selectionne {
+  border-color: var(--texte);
+  transform: scale(1.1);
+}
