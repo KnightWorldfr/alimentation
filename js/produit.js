@@ -78,6 +78,12 @@ async function afficherFicheProduit(p) {
       <select id="champ-categorie">
         ${categoriesCache.map(c => `<option value="${c.id}" ${c.id === (p.categorie || 'autre') ? 'selected' : ''}>${c.libelle}</option>`).join("")}
       </select>
+      ${p.categorie_suggeree ? `
+        <div class="bandeau-suggestion" id="bandeau-suggestion-categorie">
+          💡 Suggestion : <strong>${LIBELLES_CATEGORIE_JS[p.categorie_suggeree] || p.categorie_suggeree}</strong>
+          — <button type="button" id="btn-appliquer-suggestion" class="lien-suggestion">cliquer pour appliquer</button>
+        </div>
+      ` : ''}
 
       <div style="display:flex; gap:8px;">
         <div style="flex:1;">
@@ -145,6 +151,16 @@ async function afficherFicheProduit(p) {
     });
     document.getElementById("zone-poids-piece").style.display = nouvelleUnite === "unite" ? "block" : "none";
   });
+
+  // Présélectionne juste la catégorie suggérée dans le menu ; rien n'est
+  // enregistré tant que l'utilisateur ne valide pas via "Ajouter au stock".
+  const btnAppliquerSuggestion = document.getElementById("btn-appliquer-suggestion");
+  if (btnAppliquerSuggestion) {
+    btnAppliquerSuggestion.addEventListener("click", () => {
+      document.getElementById("champ-categorie").value = p.categorie_suggeree;
+      document.getElementById("bandeau-suggestion-categorie").remove();
+    });
+  }
 
   document.getElementById("btn-ajouter-stock").addEventListener("click", () => enregistrerEtAjouter(p.code_barres));
 }

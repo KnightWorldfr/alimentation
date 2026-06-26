@@ -72,7 +72,7 @@ function construireGroupesParCategorie(items) {
   });
 
   // Ordre d'affichage privilégié, "autre" toujours en dernier.
-  const ordreAffichage = ["fruits_legumes", "produits_laitiers", "viande_poisson", "epicerie", "snacks_aperitif", "boissons", "autre"];
+  const ordreAffichage = ["fruits_legumes", "produits_laitiers", "viande_poisson", "produits_secs", "epicerie", "produits_sucres", "snacks_aperitif", "boissons", "autre"];
   const categoriesTriees = Object.keys(groupes).sort(
     (a, b) => ordreAffichage.indexOf(a) - ordreAffichage.indexOf(b)
   );
@@ -84,16 +84,6 @@ function construireGroupesParCategorie(items) {
     </div>
   `).join("");
 }
-
-const LIBELLES_CATEGORIE_JS = {
-  fruits_legumes: "🥦 Fruits & légumes",
-  produits_laitiers: "🥛 Produits laitiers",
-  viande_poisson: "🍗 Viande & poisson",
-  epicerie: "🛒 Épicerie",
-  snacks_aperitif: "🍿 Snacks & apéro",
-  boissons: "🥤 Boissons",
-  autre: "📦 Autre",
-};
 
 function carteStockHtml(item) {
   // Seuil relatif à la quantité achetée (25% du lot), pas une valeur
@@ -159,6 +149,12 @@ async function ouvrirEditionStock(item) {
     <select id="ed-categorie">
       ${categoriesCache.map(c => `<option value="${c.id}" ${c.id === (item.categorie || 'autre') ? 'selected' : ''}>${c.libelle}</option>`).join("")}
     </select>
+    ${item.categorie_suggeree ? `
+      <div class="bandeau-suggestion" id="bandeau-suggestion-categorie">
+        💡 Suggestion : <strong>${LIBELLES_CATEGORIE_JS[item.categorie_suggeree] || item.categorie_suggeree}</strong>
+        — <button type="button" id="btn-appliquer-suggestion" class="lien-suggestion">cliquer pour appliquer</button>
+      </div>
+    ` : ''}
 
     ${unite === 'unite' ? `
       <label for="ed-poids-piece">Poids d'une pièce (g)</label>
@@ -203,6 +199,19 @@ async function ouvrirEditionStock(item) {
       Décompter une quantité consommée
     </button>
   `);
+
+  // Le bandeau ne fait que présélectionner la catégorie suggérée dans le
+  // menu déroulant — rien n'est enregistré tant que l'utilisateur ne
+  // clique pas sur "Enregistrer les modifications" comme d'habitude.
+  // Si l'utilisateur change d'avis et remet "Autre" (ou autre chose)
+  // avant de valider, c'est ce choix final qui est respecté.
+  const btnAppliquerSuggestion = document.getElementById("btn-appliquer-suggestion");
+  if (btnAppliquerSuggestion) {
+    btnAppliquerSuggestion.addEventListener("click", () => {
+      document.getElementById("ed-categorie").value = item.categorie_suggeree;
+      document.getElementById("bandeau-suggestion-categorie").remove();
+    });
+  }
 
   document.getElementById("btn-valider-correction-stock").addEventListener("click", async () => {
     const nouvelleQte = parseFloat(document.getElementById("ed-stock-quantite").value);

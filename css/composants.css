@@ -559,3 +559,26 @@ button.action.petit.actif {
   color: var(--accent-fonce);
   border-color: var(--accent);
 }
+
+/* ---------- Bandeau de suggestion de catégorie ---------- */
+
+.bandeau-suggestion {
+  background: var(--info-clair);
+  color: var(--info);
+  font-size: 0.8rem;
+  padding: 9px 12px;
+  border-radius: var(--rayon-sm);
+  margin: -6px 0 14px;
+}
+
+.lien-suggestion {
+  background: none;
+  border: none;
+  color: var(--info);
+  font-weight: 700;
+  text-decoration: underline;
+  cursor: pointer;
+  padding: 0;
+  font-size: inherit;
+  font-family: inherit;
+}
