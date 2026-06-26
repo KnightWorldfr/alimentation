@@ -42,6 +42,17 @@ async function initApp() {
   initBoutonsConsommation();
   initBoutonsCourses();
   initBoutonsScan();
+
+  // Restaure la dernière vue visitée avant le refresh, pour ne pas
+  // ramener systématiquement sur Scan. Seulement si l'API est bien
+  // configurée — sinon activerVue nous redirigera de toute façon vers
+  // Réglages, ce qui reste le comportement voulu dans ce cas.
+  if (getApiUrl()) {
+    const derniereVue = localStorage.getItem("alimentation_derniere_vue");
+    if (derniereVue) {
+      await activerVue(derniereVue);
+    }
+  }
 }
 
 // ---------- Scan : boutons d'ajout sans code-barres ----------
@@ -67,6 +78,11 @@ async function activerVue(nomVue) {
     activerVue("reglages");
     return;
   }
+
+  // Mémorise la vue choisie pour la restaurer après un refresh — sauf
+  // "reglages" quand c'est juste une redirection forcée (API non
+  // configurée), pour ne pas piéger l'utilisateur sur cet écran à vie.
+  localStorage.setItem("alimentation_derniere_vue", nomVue);
 
   document.querySelectorAll("nav button[data-vue]").forEach(b => b.classList.toggle("actif", b.dataset.vue === nomVue));
   document.querySelectorAll(".vue").forEach(v => v.classList.toggle("actif", v.id === `vue-${nomVue}`));

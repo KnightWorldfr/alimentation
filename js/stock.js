@@ -8,7 +8,7 @@ let triStockActuel = "nom";
 let rechercheStockActuelle = "";
 let regroupementCategorieActif = true;
 
-async function chargerStock() {
+async function chargerStock(tentative = 1) {
   const conteneur = document.getElementById("grille-stock");
   if (!conteneur) return;
 
@@ -37,7 +37,29 @@ async function chargerStock() {
       if (carte) carte.addEventListener("click", () => ouvrirEditionStock(item));
     });
   } catch (e) {
-    conteneur.innerHTML = `<div class="vide">Erreur de chargement du stock : ${e.message}</div>`;
+    // Réessai automatique : juste après un refresh/réveil de l'app, un
+    // VPN comme Tailscale (notamment sur iOS, qui suspend agressivement
+    // les apps/VPN en arrière-plan) peut avoir besoin d'un court instant
+    // pour rétablir la connexion. On retente avant d'afficher une erreur.
+    if (tentative < 3) {
+      conteneur.innerHTML = `<div class="vide">Connexion au serveur…</div>`;
+      await new Promise(r => setTimeout(r, 1200));
+      return chargerStock(tentative + 1);
+    }
+
+    const urlActuelle = getApiUrl();
+    conteneur.innerHTML = `
+      <div class="vide">
+        Erreur de chargement du stock.<br>
+        <span style="font-size:0.7rem; color:var(--texte-faible);">
+          Détail : ${echapperHtml(e.message || "inconnue")}<br>
+          Serveur configuré : ${echapperHtml(urlActuelle || "aucun")}
+        </span><br>
+        <button class="action secondaire petit" id="btn-reessayer-stock" style="margin-top:10px;">Réessayer</button>
+      </div>
+    `;
+    const btn = document.getElementById("btn-reessayer-stock");
+    if (btn) btn.addEventListener("click", () => chargerStock());
   }
 }
 
