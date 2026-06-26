@@ -49,14 +49,29 @@ function ajouterLigneIngredient() {
   div.innerHTML = `
     <select class="select-ingredient">
       <option value="">Choisir un produit en stock…</option>
-      ${stockDisponibleCache.map(item =>
-        `<option value="${item.code_barres}" data-unite="${item.unite_mesure}" data-restant="${item.total_restant_g}">${echapperHtml(item.nom)} (${Math.round(item.total_restant_g)} ${item.unite_mesure} dispo)</option>`
-      ).join("")}
+      ${stockDisponibleCache.map(item => {
+        const uniteAffichee = item.unite_mesure === "unite" ? "pièce(s)" : item.unite_mesure;
+        const restantAffiche = item.unite_mesure === "unite" && item.poids_unite_g
+          ? (item.total_restant_g / item.poids_unite_g).toFixed(1)
+          : Math.round(item.total_restant_g);
+        return `<option value="${item.code_barres}" data-unite="${item.unite_mesure}" data-poids-piece="${item.poids_unite_g || ''}" data-restant="${item.total_restant_g}">${echapperHtml(item.nom)} (${restantAffiche} ${uniteAffichee} dispo)</option>`;
+      }).join("")}
     </select>
-    <input type="number" class="input-quantite-ingredient" placeholder="Quantité">
+    <input type="number" class="input-quantite-ingredient" placeholder="Quantité (g)">
     <button class="btn-retirer" title="Retirer cet ingrédient">✕</button>
   `;
   conteneur.appendChild(div);
+
+  const select = div.querySelector(".select-ingredient");
+  const input = div.querySelector(".input-quantite-ingredient");
+
+  // Met à jour le placeholder de quantité selon l'unité du produit choisi,
+  // pour que ce soit clair si on doit saisir des grammes ou des pièces.
+  select.addEventListener("change", () => {
+    const option = select.options[select.selectedIndex];
+    const unite = option?.dataset.unite;
+    input.placeholder = unite === "unite" ? "Quantité (pièces)" : `Quantité (${unite || "g"})`;
+  });
 
   div.querySelector(".btn-retirer").addEventListener("click", () => div.remove());
 }
@@ -68,9 +83,20 @@ function lireIngredientsSaisis() {
     const select = ligne.querySelector(".select-ingredient");
     const input = ligne.querySelector(".input-quantite-ingredient");
     const codeBarres = select.value;
-    const quantite = parseFloat(input.value);
-    if (codeBarres && quantite > 0) {
-      ingredients.push({ code_barres: codeBarres, quantite_g: quantite });
+    const quantiteSaisie = parseFloat(input.value);
+    if (codeBarres && quantiteSaisie > 0) {
+      const option = select.options[select.selectedIndex];
+      const unite = option?.dataset.unite;
+      const poidsPiece = parseFloat(option?.dataset.poidsPiece);
+
+      // Si le produit est en "unite" et qu'on connaît le poids d'une pièce,
+      // la quantité saisie (en pièces) est convertie en grammes internes
+      // avant l'envoi — le backend raisonne toujours en grammes.
+      let quantiteG = quantiteSaisie;
+      if (unite === "unite" && poidsPiece > 0) {
+        quantiteG = quantiteSaisie * poidsPiece;
+      }
+      ingredients.push({ code_barres: codeBarres, quantite_g: quantiteG });
     }
   }
   return ingredients;
@@ -114,9 +140,22 @@ function remplirSelectProduitLibre() {
   const select = document.getElementById("libre-select-produit");
   if (!select) return;
   select.innerHTML = `<option value="">Choisir un produit en stock…</option>` +
-    stockDisponibleCache.map(item =>
-      `<option value="${item.code_barres}">${echapperHtml(item.nom)} (${Math.round(item.total_restant_g)} ${item.unite_mesure} dispo)</option>`
-    ).join("");
+    stockDisponibleCache.map(item => {
+      const uniteAffichee = item.unite_mesure === "unite" ? "pièce(s)" : item.unite_mesure;
+      const restantAffiche = item.unite_mesure === "unite" && item.poids_unite_g
+        ? (item.total_restant_g / item.poids_unite_g).toFixed(1)
+        : Math.round(item.total_restant_g);
+      return `<option value="${item.code_barres}" data-unite="${item.unite_mesure}" data-poids-piece="${item.poids_unite_g || ''}">${echapperHtml(item.nom)} (${restantAffiche} ${uniteAffichee} dispo)</option>`;
+    }).join("");
+
+  select.addEventListener("change", () => {
+    const option = select.options[select.selectedIndex];
+    const unite = option?.dataset.unite;
+    const champQuantite = document.getElementById("libre-quantite");
+    if (champQuantite) {
+      champQuantite.placeholder = unite === "unite" ? "ex: 1 (pièce)" : `ex: 30 (${unite || "g"})`;
+    }
+  });
 }
 
 function remplirSelectProfilLibre() {
@@ -130,16 +169,23 @@ function remplirSelectProfilLibre() {
 }
 
 async function validerConsommationLibre() {
-  const codeBarres = document.getElementById("libre-select-produit").value;
-  const quantite = parseFloat(document.getElementById("libre-quantite").value);
+  const select = document.getElementById("libre-select-produit");
+  const codeBarres = select.value;
+  const quantiteSaisie = parseFloat(document.getElementById("libre-quantite").value);
   const profilId = document.getElementById("libre-profil").value || null;
   const contexte = document.getElementById("libre-contexte").value.trim();
   const zone = document.getElementById("zone-resultat-consommation");
 
-  if (!codeBarres || !quantite || quantite <= 0) {
+  if (!codeBarres || !quantiteSaisie || quantiteSaisie <= 0) {
     zone.innerHTML = `<div class="resultat erreur">Choisis un produit et une quantité valide.</div>`;
     return;
   }
+
+  // Conversion pièces -> grammes internes si le produit est en "unite".
+  const option = select.options[select.selectedIndex];
+  const unite = option?.dataset.unite;
+  const poidsPiece = parseFloat(option?.dataset.poidsPiece);
+  const quantite = (unite === "unite" && poidsPiece > 0) ? quantiteSaisie * poidsPiece : quantiteSaisie;
 
   try {
     const resultat = await API.consommerStock(

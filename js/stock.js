@@ -116,10 +116,13 @@ function arrondirAffichage1(v) {
 async function ouvrirEditionStock(item) {
   if (categoriesCache.length === 0) await chargerCategories();
   const unite = item.unite_mesure || "g";
+  const nbPiecesActuel = (unite === "unite" && item.poids_unite_g)
+    ? (item.total_restant_g / item.poids_unite_g).toFixed(1)
+    : null;
 
   ouvrirModale(echapperHtml(item.nom), `
     <div class="resultat">
-      Actuellement : <strong>${Math.round(item.total_restant_g)} ${unite === 'unite' ? 'g (converti)' : unite}</strong>
+      Actuellement : <strong>${nbPiecesActuel ? nbPiecesActuel + ' pièce(s)' : Math.round(item.total_restant_g) + ' ' + unite}</strong>
       (${item.pourcentage_restant ?? 100}% du lot acheté)
     </div>
 
@@ -134,6 +137,11 @@ async function ouvrirEditionStock(item) {
       ${categoriesCache.map(c => `<option value="${c.id}" ${c.id === (item.categorie || 'autre') ? 'selected' : ''}>${c.libelle}</option>`).join("")}
     </select>
 
+    ${unite === 'unite' ? `
+      <label for="ed-poids-piece">Poids d'une pièce (g)</label>
+      <input type="number" id="ed-poids-piece" value="${item.poids_unite_g ?? ''}" placeholder="ex: 125">
+    ` : ''}
+
     <label for="ed-stock-quantite">Nouvelle quantité restante (${unite === 'unite' ? 'g' : unite})</label>
     <input type="number" id="ed-stock-quantite" value="${item.total_restant_g}">
 
@@ -142,20 +150,28 @@ async function ouvrirEditionStock(item) {
 
     <div class="macros-grille" style="margin-bottom:14px;">
       <div class="macro">
-        Énergie (kcal/100${unite === 'ml' ? 'ml' : 'g'})
+        Énergie (kcal/${unite === 'ml' ? '100ml' : unite === 'unite' ? 'pièce' : '100g'})
         <input type="number" id="ed-kcal" value="${arrondirAffichage1(item.energie_kcal_100g)}" style="margin:4px 0 0; padding:6px;">
       </div>
       <div class="macro">
-        Protéines (g/100${unite === 'ml' ? 'ml' : 'g'})
+        Protéines (g/${unite === 'ml' ? '100ml' : unite === 'unite' ? 'pièce' : '100g'})
         <input type="number" id="ed-proteines" value="${arrondirAffichage1(item.proteines_100g)}" style="margin:4px 0 0; padding:6px;">
       </div>
       <div class="macro">
-        Glucides (g/100${unite === 'ml' ? 'ml' : 'g'})
+        Glucides (g/${unite === 'ml' ? '100ml' : unite === 'unite' ? 'pièce' : '100g'})
         <input type="number" id="ed-glucides" value="${arrondirAffichage1(item.glucides_100g)}" style="margin:4px 0 0; padding:6px;">
       </div>
       <div class="macro">
-        Lipides (g/100${unite === 'ml' ? 'ml' : 'g'})
+        Lipides (g/${unite === 'ml' ? '100ml' : unite === 'unite' ? 'pièce' : '100g'})
         <input type="number" id="ed-lipides" value="${arrondirAffichage1(item.lipides_100g)}" style="margin:4px 0 0; padding:6px;">
+      </div>
+      <div class="macro">
+        Sucres (g/${unite === 'ml' ? '100ml' : unite === 'unite' ? 'pièce' : '100g'})
+        <input type="number" id="ed-sucres" value="${arrondirAffichage1(item.sucres_100g)}" style="margin:4px 0 0; padding:6px;">
+      </div>
+      <div class="macro">
+        Sel (g/${unite === 'ml' ? '100ml' : unite === 'unite' ? 'pièce' : '100g'})
+        <input type="number" id="ed-sel" value="${arrondirAffichage1(item.sel_100g)}" style="margin:4px 0 0; padding:6px;">
       </div>
     </div>
 
@@ -180,14 +196,18 @@ async function ouvrirEditionStock(item) {
 
     try {
       // 1. Met à jour la fiche produit (nom, marque, catégorie, macros)
+      const champPoidsPiece = document.getElementById("ed-poids-piece");
       await API.majProduit(item.code_barres, {
         nom: document.getElementById("ed-nom").value.trim() || null,
         marque: document.getElementById("ed-marque").value.trim() || null,
         categorie: document.getElementById("ed-categorie").value,
+        poids_unite_g: champPoidsPiece ? valeur("ed-poids-piece") : null,
         energie_kcal_100g: valeur("ed-kcal"),
         proteines_100g: valeur("ed-proteines"),
         glucides_100g: valeur("ed-glucides"),
         lipides_100g: valeur("ed-lipides"),
+        sucres_100g: valeur("ed-sucres"),
+        sel_100g: valeur("ed-sel"),
       });
       // 2. Corrige la quantité si elle a changé
       if (nouvelleQte !== item.total_restant_g) {
@@ -207,11 +227,12 @@ async function ouvrirEditionStock(item) {
 
 function ouvrirFormulaireConsommationRapide(item) {
   const unite = item.unite_mesure || "g";
+  const uniteAffichee = unite === "unite" ? "pièce(s)" : unite;
   const profilActifId = getProfilActifId();
 
   ouvrirModale(`Consommer : ${echapperHtml(item.nom)}`, `
-    <label for="conso-rapide-quantite">Quantité consommée (${unite === 'unite' ? 'g' : unite})</label>
-    <input type="number" id="conso-rapide-quantite" placeholder="ex: 50">
+    <label for="conso-rapide-quantite">Quantité consommée (${uniteAffichee})</label>
+    <input type="number" id="conso-rapide-quantite" placeholder="${unite === 'unite' ? 'ex: 1' : 'ex: 50'}">
 
     <label for="conso-rapide-profil">Qui ?</label>
     <select id="conso-rapide-profil">
@@ -223,12 +244,14 @@ function ouvrirFormulaireConsommationRapide(item) {
   `);
 
   document.getElementById("btn-valider-conso-rapide").addEventListener("click", async () => {
-    const qte = parseFloat(document.getElementById("conso-rapide-quantite").value);
+    const qteSaisie = parseFloat(document.getElementById("conso-rapide-quantite").value);
     const profilId = document.getElementById("conso-rapide-profil").value || null;
-    if (isNaN(qte) || qte <= 0) {
+    if (isNaN(qteSaisie) || qteSaisie <= 0) {
       afficherToastModale("Merci de saisir une quantité valide.", true);
       return;
     }
+    // Conversion pièces -> grammes internes si le produit est en "unite".
+    const qte = (unite === "unite" && item.poids_unite_g) ? qteSaisie * item.poids_unite_g : qteSaisie;
     try {
       await API.consommerStock(item.code_barres, qte, "Consommation rapide", profilId ? parseInt(profilId) : null);
       fermerModale();

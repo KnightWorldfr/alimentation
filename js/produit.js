@@ -55,8 +55,18 @@ async function afficherFicheProduit(p) {
   const quantiteNumerique = extraireQuantiteNumerique(p.quantite_unite, unite);
   const labelUnite100 = unite === "ml" ? "100ml" : unite === "unite" ? "pièce" : "100g";
 
+  // Si ce produit existait déjà dans la base (avec une date de dernière
+  // modification dans le passé), on l'indique clairement — pour que ce
+  // soit visible que ses infos déjà personnalisées (nom, marque, macros
+  // corrigées) sont bien récupérées, pas redemandées depuis zéro.
+  const dejaConnu = !!p.derniere_maj;
+  const messageDejaConnu = dejaConnu
+    ? `<div class="resultat">📋 Produit déjà enregistré — ses informations (y compris tes modifications précédentes) sont reprises ci-dessous. Tu peux les corriger si besoin.</div>`
+    : "";
+
   document.getElementById("zone-resultat-scan").innerHTML = `
     <div class="carte">
+      ${messageDejaConnu}
       <label for="champ-nom">Nom du produit</label>
       <input type="text" id="champ-nom" value="${nomManquant ? '' : echapperHtml(p.nom)}"
              placeholder="${nomManquant ? 'Nom inconnu — complète-le ici' : ''}">
@@ -85,6 +95,11 @@ async function afficherFicheProduit(p) {
         </div>
       </div>
       ${quantiteNumerique === null ? `<div class="resultat erreur" style="margin-top:-6px;">Quantité du contenant inconnue — obligatoire pour ajouter au stock.</div>` : ""}
+
+      <div id="zone-poids-piece" style="display:${unite === 'unite' ? 'block' : 'none'};">
+        <label for="champ-poids-piece">Poids d'une pièce (g) — pour calculer les macros par pièce</label>
+        <input type="number" id="champ-poids-piece" value="${p.poids_unite_g ?? ''}" placeholder="ex: 125 (poids d'un yaourt)">
+      </div>
 
       <div class="macros-grille" style="margin-top:8px;" id="zone-macros-produit">
         <div class="macro">
@@ -128,6 +143,7 @@ async function afficherFicheProduit(p) {
     document.querySelectorAll("#zone-macros-produit .macro").forEach(macro => {
       macro.childNodes[0].textContent = macro.childNodes[0].textContent.replace(/\/(100g|100ml|pièce)/, `/${label}`);
     });
+    document.getElementById("zone-poids-piece").style.display = nouvelleUnite === "unite" ? "block" : "none";
   });
 
   document.getElementById("btn-ajouter-stock").addEventListener("click", () => enregistrerEtAjouter(p.code_barres));
@@ -162,9 +178,14 @@ async function enregistrerEtAjouter(codeBarres) {
 
   const quantiteTotale = valeur("champ-quantite-totale");
   const uniteMesure = document.getElementById("champ-unite").value;
+  const poidsUnitePiece = uniteMesure === "unite" ? valeur("champ-poids-piece") : null;
 
   if (quantiteTotale === null) {
     afficherResultatScan("Merci de renseigner la quantité du contenant (obligatoire).", true);
+    return;
+  }
+  if (uniteMesure === "unite" && !poidsUnitePiece) {
+    afficherResultatScan("Pour un produit en unité(s), indique le poids approximatif d'une pièce (pour calculer les macros correctement).", true);
     return;
   }
 
@@ -174,6 +195,7 @@ async function enregistrerEtAjouter(codeBarres) {
     categorie: document.getElementById("champ-categorie").value,
     quantite_totale: quantiteTotale,
     unite_mesure: uniteMesure,
+    poids_unite_g: poidsUnitePiece,
     energie_kcal_100g: valeur("champ-kcal"),
     proteines_100g: valeur("champ-proteines"),
     glucides_100g: valeur("champ-glucides"),
@@ -186,7 +208,15 @@ async function enregistrerEtAjouter(codeBarres) {
     await API.majProduit(codeBarres, payload);
 
     const qteAjout = document.getElementById("input-quantite-ajout").value;
-    const quantiteAjoutee = qteAjout ? parseFloat(qteAjout) : quantiteTotale;
+    // Pour un produit en pièces, la quantité saisie (par l'utilisateur ou
+    // par défaut = quantité totale du contenant) est un NOMBRE DE PIÈCES,
+    // à convertir en grammes internes avant l'envoi au stock — le système
+    // de stock raisonne toujours en grammes en interne, quelle que soit
+    // l'unité affichée à l'utilisateur.
+    let quantiteAjoutee = qteAjout ? parseFloat(qteAjout) : quantiteTotale;
+    if (uniteMesure === "unite" && poidsUnitePiece) {
+      quantiteAjoutee = quantiteAjoutee * poidsUnitePiece;
+    }
 
     const dataStock = await API.ajouterStock(codeBarres, quantiteAjoutee);
     afficherResultatScan(`✓ ${dataStock.message}`, false);
