@@ -72,7 +72,10 @@ const API = {
   creerProfil(payload) { return this.post("/profils", payload); },
   modifierProfil(id, payload) { return this.put(`/profils/${id}`, payload); },
   supprimerProfil(id) { return this.delete(`/profils/${id}`); },
-  statsProfil(id, jours = 7) { return this.get(`/profils/${id}/stats?jours=${jours}`); },
+  dashboardProfil(id, jours = 7) { return this.get(`/profils/${id}/dashboard?jours=${jours}`); },
+  releesPoids(id, jours = 90) { return this.get(`/profils/${id}/poids?jours=${jours}`); },
+  ajouterReleveePoids(id, poidsKg) { return this.post(`/profils/${id}/poids`, { poids_kg: poidsKg }); },
+  supprimerReleveePoids(profilId, releveId) { return this.delete(`/profils/${profilId}/poids/${releveId}`); },
 
   // ---------- Recettes ----------
   recettes(statut = null) {
