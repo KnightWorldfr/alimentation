@@ -18,6 +18,14 @@ function setProfilActifId(id) {
   if (id === null) localStorage.removeItem("alimentation_profil_actif");
   else localStorage.setItem("alimentation_profil_actif", id);
   rafraichirSelecteurProfilActif();
+
+  // Si le dashboard est actuellement affiché, on le recharge avec le
+  // nouveau profil sélectionné (sinon il resterait figé sur l'ancien).
+  const vueHistoActive = document.getElementById("vue-historique")?.classList.contains("actif");
+  const sousVueDashboard = document.getElementById("panneau-dashboard")?.style.display !== "none";
+  if (vueHistoActive && sousVueDashboard && typeof initVueDashboard === "function") {
+    initVueDashboard();
+  }
 }
 
 async function chargerProfils() {
