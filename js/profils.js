@@ -109,26 +109,78 @@ function profilCarteHtml(p) {
   `;
 }
 
-function ouvrirFormulaireNouveauProfil() {
-  ouvrirModale("Nouveau profil", `
-    <label for="nv-profil-nom">Nom</label>
-    <input type="text" id="nv-profil-nom" placeholder="ex: Thomas">
+// Formulaire unique pour création ET édition — seul ce qui se passe à la
+// soumission change (profilExistant === null -> création, sinon -> édition).
+function ouvrirFormulaireProfil(profilExistant) {
+  const p = profilExistant || {};
+  const titre = profilExistant ? `Modifier ${p.nom}` : "Nouveau profil";
+
+  ouvrirModale(titre, `
+    <label for="pf-nom">Nom</label>
+    <input type="text" id="pf-nom" value="${profilExistant ? echapperHtml(p.nom) : ''}" placeholder="ex: Thomas">
 
     <label>Couleur</label>
     <div class="swatches-couleur">
-      ${COULEURS_DISPONIBLES.map((c, i) => `<div class="swatch-couleur ${i === 0 ? 'selectionne' : ''}" data-couleur="${c}" style="background:${c}"></div>`).join("")}
+      ${COULEURS_DISPONIBLES.map(c => `<div class="swatch-couleur ${c === (p.couleur || COULEURS_DISPONIBLES[0]) ? 'selectionne' : ''}" data-couleur="${c}" style="background:${c}"></div>`).join("")}
     </div>
 
-    <label for="nv-profil-poids">Poids (kg, optionnel)</label>
-    <input type="number" id="nv-profil-poids" placeholder="ex: 70">
+    <div style="display:flex; gap:8px;">
+      <div style="flex:1;">
+        <label for="pf-poids">Poids actuel (kg)</label>
+        <input type="number" id="pf-poids" step="0.1" value="${p.poids_kg ?? ''}" placeholder="ex: 93">
+      </div>
+      <div style="flex:1;">
+        <label for="pf-taille">Taille (cm)</label>
+        <input type="number" id="pf-taille" value="${p.taille_cm ?? ''}" placeholder="ex: 175">
+      </div>
+    </div>
 
-    <label for="nv-profil-objectif">Objectif calories/jour (optionnel)</label>
-    <input type="number" id="nv-profil-objectif" placeholder="ex: 2200">
+    <div style="display:flex; gap:8px;">
+      <div style="flex:1;">
+        <label for="pf-age">Âge</label>
+        <input type="number" id="pf-age" value="${p.age ?? ''}" placeholder="ex: 25">
+      </div>
+      <div style="flex:1;">
+        <label for="pf-sexe">Sexe</label>
+        <select id="pf-sexe">
+          <option value="homme" ${p.sexe === 'homme' ? 'selected' : ''}>Homme</option>
+          <option value="femme" ${p.sexe === 'femme' ? 'selected' : ''}>Femme</option>
+        </select>
+      </div>
+    </div>
 
-    <button class="action" id="btn-creer-profil">Créer le profil</button>
+    <label for="pf-activite">Niveau d'activité</label>
+    <select id="pf-activite">
+      <option value="sedentaire" ${(!p.niveau_activite || p.niveau_activite === 'sedentaire') ? 'selected' : ''}>Sédentaire (peu/pas d'exercice)</option>
+      <option value="leger" ${p.niveau_activite === 'leger' ? 'selected' : ''}>Légèrement actif (1-3x/semaine)</option>
+      <option value="modere" ${p.niveau_activite === 'modere' ? 'selected' : ''}>Modérément actif (3-5x/semaine)</option>
+      <option value="actif" ${p.niveau_activite === 'actif' ? 'selected' : ''}>Très actif (6-7x/semaine)</option>
+      <option value="tres_actif" ${p.niveau_activite === 'tres_actif' ? 'selected' : ''}>Athlète / travail physique</option>
+    </select>
+
+    <div style="display:flex; gap:8px;">
+      <div style="flex:1;">
+        <label for="pf-poids-cible">Poids visé (kg)</label>
+        <input type="number" id="pf-poids-cible" step="0.1" value="${p.poids_cible_kg ?? ''}" placeholder="ex: 83">
+      </div>
+      <div style="flex:1;">
+        <label for="pf-duree">En combien de jours ?</label>
+        <input type="number" id="pf-duree" value="${p.duree_objectif_jours ?? ''}" placeholder="ex: 180">
+      </div>
+    </div>
+
+    <div id="zone-apercu-calcul"></div>
+
+    <label for="pf-objectif">Objectif calories/jour</label>
+    <input type="number" id="pf-objectif" value="${p.objectif_kcal_jour ?? ''}" placeholder="calculé automatiquement, ou saisis ta propre valeur">
+    <p style="font-size:0.74rem; color:var(--texte-faible); margin-top:-10px;">
+      Laisse ce champ tel qu'il est rempli par le calcul automatique, ou modifie-le pour fixer ta propre valeur.
+    </p>
+
+    <button class="action" id="btn-valider-profil">${profilExistant ? "Enregistrer" : "Créer le profil"}</button>
   `);
 
-  let couleurChoisie = COULEURS_DISPONIBLES[0];
+  let couleurChoisie = p.couleur || COULEURS_DISPONIBLES[0];
   document.querySelectorAll(".swatch-couleur").forEach(sw => {
     sw.addEventListener("click", () => {
       document.querySelectorAll(".swatch-couleur").forEach(s => s.classList.remove("selectionne"));
@@ -137,13 +189,111 @@ function ouvrirFormulaireNouveauProfil() {
     });
   });
 
-  document.getElementById("btn-creer-profil").addEventListener("click", async () => {
-    const nom = document.getElementById("nv-profil-nom").value.trim();
-    if (!nom) { afficherToastModale("Le nom est obligatoire.", true); return; }
-    const poids = parseFloat(document.getElementById("nv-profil-poids").value) || null;
-    const objectif = parseFloat(document.getElementById("nv-profil-objectif").value) || null;
+  // Préremplit le poids visé automatiquement via l'IMC dès que la taille
+  // est connue, mais seulement si le poids visé n'a pas déjà été saisi
+  // (on ne veut pas écraser une valeur que l'utilisateur a déjà choisie).
+  const champTaille = document.getElementById("pf-taille");
+  const champPoidsCible = document.getElementById("pf-poids-cible");
+  champTaille.addEventListener("change", async () => {
+    const taille = parseFloat(champTaille.value);
+    if (taille > 0 && !champPoidsCible.value) {
+      try {
+        const res = await API.poidsSante(taille);
+        champPoidsCible.value = res.poids_suggere_kg;
+        declencherApercuCalcul();
+      } catch (e) { /* silencieux : c'est juste une suggestion */ }
+    }
+  });
+
+  // Recalcule l'aperçu en direct à chaque changement de champ pertinent.
+  const champsADeclencher = ["pf-poids", "pf-taille", "pf-age", "pf-sexe", "pf-activite", "pf-poids-cible", "pf-duree"];
+  champsADeclencher.forEach(id => {
+    document.getElementById(id).addEventListener("input", declencherApercuCalcul);
+    document.getElementById(id).addEventListener("change", declencherApercuCalcul);
+  });
+
+  let debounceApercu = null;
+  function declencherApercuCalcul() {
+    clearTimeout(debounceApercu);
+    debounceApercu = setTimeout(afficherApercuCalcul, 350);
+  }
+
+  async function afficherApercuCalcul() {
+    const valeur = (id) => parseFloat(document.getElementById(id).value) || null;
+    const poids = valeur("pf-poids");
+    const taille = valeur("pf-taille");
+    const age = valeur("pf-age");
+    const sexe = document.getElementById("pf-sexe").value;
+    const activite = document.getElementById("pf-activite").value;
+    const poidsCible = valeur("pf-poids-cible");
+    const duree = valeur("pf-duree");
+
+    const zone = document.getElementById("zone-apercu-calcul");
+    if (!poids || !taille || !age || !poidsCible || !duree) {
+      zone.innerHTML = "";
+      return;
+    }
+
     try {
-      await API.creerProfil({ nom, couleur: couleurChoisie, poids_kg: poids, objectif_kcal_jour: objectif });
+      const res = await API.previsualiserObjectif({
+        poids_actuel_kg: poids, poids_cible_kg: poidsCible, taille_cm: taille,
+        age, sexe, niveau_activite: activite, duree_jours: duree,
+      });
+      const champObjectif = document.getElementById("pf-objectif");
+      // Ne préremplit que si l'utilisateur n'a pas déjà tapé sa propre valeur.
+      if (!champObjectif.dataset.modifieParUtilisateur) {
+        champObjectif.value = res.objectif_kcal_jour;
+      }
+
+      zone.innerHTML = `
+        <div class="resultat" style="margin-bottom:10px;">
+          Métabolisme de base : <strong>${res.metabolisme_base} kcal</strong> ·
+          Dépense totale estimée : <strong>${res.tdee} kcal</strong> ·
+          Rythme visé : <strong>${res.rythme_kg_semaine} kg/semaine</strong>
+        </div>
+        ${res.alertes.map(a => `<div class="resultat erreur" style="margin-bottom:6px;">${a}</div>`).join("")}
+      `;
+    } catch (e) {
+      zone.innerHTML = "";
+    }
+  }
+
+  // Marque le champ objectif comme "modifié manuellement" dès que
+  // l'utilisateur y tape quelque chose lui-même, pour ne plus l'écraser.
+  document.getElementById("pf-objectif").addEventListener("input", (e) => {
+    e.target.dataset.modifieParUtilisateur = "1";
+  });
+
+  if (profilExistant) afficherApercuCalcul();
+
+  document.getElementById("btn-valider-profil").addEventListener("click", async () => {
+    const nom = document.getElementById("pf-nom").value.trim();
+    if (!nom) { afficherToastModale("Le nom est obligatoire.", true); return; }
+
+    const valeur = (id) => {
+      const v = document.getElementById(id).value;
+      return v === "" ? null : parseFloat(v);
+    };
+
+    const payload = {
+      nom,
+      couleur: couleurChoisie,
+      poids_kg: valeur("pf-poids"),
+      taille_cm: valeur("pf-taille"),
+      age: valeur("pf-age"),
+      sexe: document.getElementById("pf-sexe").value,
+      niveau_activite: document.getElementById("pf-activite").value,
+      poids_cible_kg: valeur("pf-poids-cible"),
+      duree_objectif_jours: valeur("pf-duree"),
+      objectif_kcal_jour: valeur("pf-objectif"),
+    };
+
+    try {
+      if (profilExistant) {
+        await API.modifierProfil(profilExistant.id, payload);
+      } else {
+        await API.creerProfil(payload);
+      }
       fermerModale();
       await chargerVueProfilsReglages();
       rafraichirSelecteurProfilActif();
@@ -153,48 +303,12 @@ function ouvrirFormulaireNouveauProfil() {
   });
 }
 
+function ouvrirFormulaireNouveauProfil() {
+  ouvrirFormulaireProfil(null);
+}
+
 function ouvrirEditionProfil(p) {
-  ouvrirModale(`Modifier ${p.nom}`, `
-    <label for="ed-profil-nom">Nom</label>
-    <input type="text" id="ed-profil-nom" value="${echapperHtml(p.nom)}">
-
-    <label>Couleur</label>
-    <div class="swatches-couleur">
-      ${COULEURS_DISPONIBLES.map(c => `<div class="swatch-couleur ${c === p.couleur ? 'selectionne' : ''}" data-couleur="${c}" style="background:${c}"></div>`).join("")}
-    </div>
-
-    <label for="ed-profil-poids">Poids (kg)</label>
-    <input type="number" id="ed-profil-poids" value="${p.poids_kg ?? ''}">
-
-    <label for="ed-profil-objectif">Objectif calories/jour</label>
-    <input type="number" id="ed-profil-objectif" value="${p.objectif_kcal_jour ?? ''}">
-
-    <button class="action" id="btn-sauver-profil">Enregistrer</button>
-  `);
-
-  let couleurChoisie = p.couleur;
-  document.querySelectorAll(".swatch-couleur").forEach(sw => {
-    sw.addEventListener("click", () => {
-      document.querySelectorAll(".swatch-couleur").forEach(s => s.classList.remove("selectionne"));
-      sw.classList.add("selectionne");
-      couleurChoisie = sw.dataset.couleur;
-    });
-  });
-
-  document.getElementById("btn-sauver-profil").addEventListener("click", async () => {
-    const nom = document.getElementById("ed-profil-nom").value.trim();
-    if (!nom) { afficherToastModale("Le nom est obligatoire.", true); return; }
-    const poids = parseFloat(document.getElementById("ed-profil-poids").value) || null;
-    const objectif = parseFloat(document.getElementById("ed-profil-objectif").value) || null;
-    try {
-      await API.modifierProfil(p.id, { nom, couleur: couleurChoisie, poids_kg: poids, objectif_kcal_jour: objectif });
-      fermerModale();
-      await chargerVueProfilsReglages();
-      rafraichirSelecteurProfilActif();
-    } catch (e) {
-      afficherToastModale(e.message, true);
-    }
-  });
+  ouvrirFormulaireProfil(p);
 }
 
 async function supprimerProfilAvecConfirmation(p) {

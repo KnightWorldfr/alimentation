@@ -76,6 +76,9 @@ const API = {
   releesPoids(id, jours = 90) { return this.get(`/profils/${id}/poids?jours=${jours}`); },
   ajouterReleveePoids(id, poidsKg) { return this.post(`/profils/${id}/poids`, { poids_kg: poidsKg }); },
   supprimerReleveePoids(profilId, releveId) { return this.delete(`/profils/${profilId}/poids/${releveId}`); },
+  previsualiserObjectif(payload) { return this.post("/calculs/objectif-kcal", payload); },
+  poidsSante(tailleCm) { return this.get(`/calculs/poids-sante?taille_cm=${tailleCm}`); },
+  purgerHistorique() { return this.delete("/historique"); },
 
   // ---------- Recettes ----------
   recettes(statut = null) {

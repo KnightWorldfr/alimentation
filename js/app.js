@@ -96,6 +96,22 @@ function initReglages() {
   if (btnNouveauProfil) {
     btnNouveauProfil.addEventListener("click", ouvrirFormulaireNouveauProfil);
   }
+
+  const btnPurger = document.getElementById("btn-purger-historique");
+  if (btnPurger) {
+    btnPurger.addEventListener("click", async () => {
+      const zone = document.getElementById("zone-resultat-purge");
+      if (!confirm("Vider tout le journal des consommations ? Cette action est irréversible. Tes produits enregistrés et ton stock actuel ne seront pas touchés.")) {
+        return;
+      }
+      try {
+        const resultat = await API.purgerHistorique();
+        zone.innerHTML = `<div class="resultat">✓ ${resultat.message}</div>`;
+      } catch (e) {
+        zone.innerHTML = `<div class="resultat erreur">${e.message}</div>`;
+      }
+    });
+  }
 }
 
 // ---------- Consommation : boutons globaux ----------
