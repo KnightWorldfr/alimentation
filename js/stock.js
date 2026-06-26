@@ -72,7 +72,7 @@ function construireGroupesParCategorie(items) {
   });
 
   // Ordre d'affichage privilégié, "autre" toujours en dernier.
-  const ordreAffichage = ["fruits_legumes", "produits_laitiers", "viande_poisson", "epicerie", "boissons", "autre"];
+  const ordreAffichage = ["fruits_legumes", "produits_laitiers", "viande_poisson", "epicerie", "snacks_aperitif", "boissons", "autre"];
   const categoriesTriees = Object.keys(groupes).sort(
     (a, b) => ordreAffichage.indexOf(a) - ordreAffichage.indexOf(b)
   );
@@ -90,6 +90,7 @@ const LIBELLES_CATEGORIE_JS = {
   produits_laitiers: "🥛 Produits laitiers",
   viande_poisson: "🍗 Viande & poisson",
   epicerie: "🛒 Épicerie",
+  snacks_aperitif: "🍿 Snacks & apéro",
   boissons: "🥤 Boissons",
   autre: "📦 Autre",
 };

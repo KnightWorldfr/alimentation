@@ -13,11 +13,16 @@ function ouvrirModale(titre, contenuHtml) {
   fond.id = "fond-modale-actuelle";
   fond.innerHTML = `
     <div class="contenu-modale">
-      <h3>${titre}</h3>
+      <div class="entete-modale">
+        <h3>${titre}</h3>
+        <button class="btn-fermer-modale" id="btn-fermer-modale" aria-label="Fermer">✕</button>
+      </div>
       ${contenuHtml}
     </div>
   `;
   document.body.appendChild(fond);
+
+  document.getElementById("btn-fermer-modale").addEventListener("click", fermerModale);
 
   // Clic en dehors du contenu = ferme la modale
   fond.addEventListener("click", (e) => {

@@ -132,12 +132,39 @@
   .contenu-modale { border-radius: var(--rayon-lg); }
 }
 
+.entete-modale {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
 .contenu-modale h3 {
   font-size: 1.05rem;
   font-weight: 800;
   color: var(--texte);
-  margin: 0 0 16px;
+  margin: 0;
+  flex: 1;
 }
+
+.btn-fermer-modale {
+  background: var(--surface-alt);
+  border: none;
+  color: var(--texte-att);
+  font-size: 1rem;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  cursor: pointer;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.15s;
+}
+
+.btn-fermer-modale:hover { background: var(--bordure); }
 
 /* ---------- VUE CONSOMMATION ---------- */
 
