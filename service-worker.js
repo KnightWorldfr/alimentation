@@ -7,7 +7,7 @@
 //
 // CACHE_VERSION : change ce numéro à chaque mise à jour notable de l'appli
 // pour forcer le téléphone à retélécharger les nouveaux fichiers.
-const CACHE_VERSION = "alimentation-v5";
+const CACHE_VERSION = "alimentation-v6";
 
 const FICHIERS_A_METTRE_EN_CACHE = [
   "./",
@@ -57,17 +57,26 @@ self.addEventListener("activate", (event) => {
 self.addEventListener("fetch", (event) => {
   const url = new URL(event.request.url);
 
-  // Ne jamais mettre en cache les appels vers l'API (Tailscale) : on veut
-  // toujours les données fraîches, pas une vieille copie locale.
-  // On reconnaît ces appels parce qu'ils ne pointent pas vers le même
-  // domaine que la PWA elle-même (l'API tourne sur ton PC via Tailscale).
+  // Ne jamais intercepter les appels vers l'API (Tailscale) : on veut
+  // toujours les données fraîches, jamais une vieille copie locale.
   if (url.origin !== self.location.origin) {
-    return; // laisse la requête passer normalement, sans interception
+    return;
   }
 
+  // Stratégie "réseau en priorité, cache en secours" : on essaie toujours
+  // de récupérer la dernière version sur le réseau d'abord. Le cache ne
+  // sert que si le réseau échoue (hors-ligne) — jamais pour économiser une
+  // requête. C'est ce qui évite d'être bloqué sur une ancienne version
+  // tant qu'on a du réseau, sans avoir à vider le cache du navigateur.
   event.respondWith(
-    caches.match(event.request).then((reponseEnCache) => {
-      return reponseEnCache || fetch(event.request);
-    })
+    fetch(event.request)
+      .then((reponseReseau) => {
+        // Met à jour le cache avec la version fraîche pour le jour où
+        // le réseau sera indisponible.
+        const copie = reponseReseau.clone();
+        caches.open(CACHE_VERSION).then((cache) => cache.put(event.request, copie));
+        return reponseReseau;
+      })
+      .catch(() => caches.match(event.request))
   );
 });

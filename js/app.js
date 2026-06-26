@@ -10,9 +10,19 @@ document.addEventListener("DOMContentLoaded", () => {
 async function initApp() {
   initTheme();
 
-  // Enregistrement du service worker (PWA installable + mises à jour auto)
+  // Enregistrement du service worker (PWA installable + mises à jour auto).
+  // Dès qu'une nouvelle version est détectée et activée, on recharge la
+  // page automatiquement — sinon le navigateur continuerait d'exécuter
+  // l'ancien JS déjà chargé en mémoire, même avec le nouveau cache prêt.
   if ("serviceWorker" in navigator) {
     navigator.serviceWorker.register("service-worker.js").catch(() => {});
+
+    let rechargementDejaDeclenche = false;
+    navigator.serviceWorker.addEventListener("controllerchange", () => {
+      if (rechargementDejaDeclenche) return; // évite une boucle de rechargement
+      rechargementDejaDeclenche = true;
+      window.location.reload();
+    });
   }
 
   // Vérifie que l'adresse de l'API est configurée avant toute chose
