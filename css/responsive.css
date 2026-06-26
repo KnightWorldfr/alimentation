@@ -6,16 +6,19 @@
 
 @media (min-width: 760px) {
   body {
-    display: grid;
-    grid-template-columns: 240px 1fr;
-    grid-template-rows: var(--hauteur-header) 1fr;
+    display: block;
     min-height: 100vh;
     padding-bottom: 0;
+    /* padding-left réserve la place de la sidebar fixe (240px) */
+    padding-left: 240px;
   }
 
   header {
-    grid-column: 1 / -1;
+    position: sticky;
+    top: 0;
     padding: 0 28px;
+    /* la sidebar étant position:fixed (hors flux), le header n'a plus
+       besoin de s'aligner sur une colonne de grille */
   }
 
   header .sous-titre {
@@ -25,20 +28,32 @@
     font-weight: 500;
   }
 
-  /* La nav devient une sidebar verticale, plus de contrainte de largeur */
+  /* La sidebar est totalement sortie du flux normal de la page (position:
+     fixed, comme sur mobile) plutôt que dépendante d'une grille partagée
+     avec le contenu. C'est ce qui évite que sa hauteur ou son scroll soit
+     entraîné par la hauteur du contenu de "main" : elle reste clouée à la
+     fenêtre, indépendamment de ce qui se passe à droite. */
   nav {
-    position: static;
-    grid-row: 2;
-    grid-column: 1;
+    position: fixed;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    width: 240px;
+    height: 100vh;
     grid-template-columns: 1fr;
-    height: auto;
     flex-direction: column;
+    align-content: flex-start;
     border-top: none;
     border-right: 1px solid var(--bordure);
     padding: 16px 12px;
     box-shadow: none;
     gap: 2px;
+    overflow-y: auto;
+    z-index: 40;
   }
+
+  /* Le header occupe toute la largeur visible, puisque le body a un
+     padding-left qui réserve déjà la place de la sidebar fixe. */
 
   nav button {
     flex-direction: row;
@@ -59,12 +74,9 @@
   nav button:hover:not(.actif) { background: var(--surface-alt); }
 
   main {
-    grid-row: 2;
-    grid-column: 2;
     max-width: 1100px;
     width: 100%;
     padding: 28px 32px;
-    overflow-y: auto;
   }
 
   .grille-stock { grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); }
@@ -98,4 +110,10 @@ button:focus-visible, input:focus-visible, select:focus-visible,
 .carte-stock:focus-visible, .case-course:focus-visible {
   outline: 2px solid var(--accent);
   outline-offset: 2px;
+}
+
+/* Dashboard : cartes résumé restent en grille 3 colonnes même sur petit
+   mobile (juste plus compact), mais passent en 1 colonne sous 360px. */
+@media (max-width: 360px) {
+  .grille-cartes-resume { grid-template-columns: 1fr; }
 }
