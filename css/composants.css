@@ -406,3 +406,99 @@
   border-color: var(--texte);
   transform: scale(1.1);
 }
+
+/* ---------- VUE DASHBOARD (Suivi) ---------- */
+
+.barre-periode {
+  display: flex;
+  gap: 6px;
+  overflow-x: auto;
+  margin-bottom: 16px;
+  padding-bottom: 2px;
+  -webkit-overflow-scrolling: touch;
+}
+
+.chip-periode {
+  background: var(--surface);
+  border: 1.5px solid var(--bordure);
+  border-radius: 20px;
+  padding: 7px 14px;
+  font-family: inherit;
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--texte-att);
+  cursor: pointer;
+  white-space: nowrap;
+  flex-shrink: 0;
+  transition: background 0.15s, color 0.15s, border-color 0.15s;
+}
+
+.chip-periode.actif {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: white;
+}
+
+.grille-cartes-resume {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+  margin-bottom: 16px;
+}
+
+.carte-resume {
+  background: var(--surface);
+  border: 1px solid var(--bordure);
+  border-radius: var(--rayon);
+  padding: 14px 12px;
+  text-align: center;
+}
+
+.label-resume {
+  font-size: 0.68rem;
+  font-weight: 600;
+  color: var(--texte-faible);
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+  margin-bottom: 6px;
+}
+
+.valeur-resume {
+  font-size: 1.3rem;
+  font-weight: 800;
+  color: var(--texte);
+  line-height: 1.1;
+}
+
+.unite-resume {
+  font-size: 0.68rem;
+  font-weight: 600;
+  color: var(--texte-faible);
+  margin-left: 3px;
+}
+
+.souslabel-resume {
+  font-size: 0.68rem;
+  color: var(--texte-faible);
+  margin-top: 4px;
+}
+
+.svg-graphique {
+  width: 100%;
+  height: auto;
+  display: block;
+  overflow: visible;
+}
+
+.svg-label-axe {
+  font-size: 9px;
+  fill: var(--texte-faible);
+  font-family: inherit;
+}
+
+.svg-label-objectif {
+  font-size: 9px;
+  fill: var(--texte-faible);
+  font-family: inherit;
+  font-weight: 600;
+}
