@@ -79,6 +79,11 @@ const API = {
   previsualiserObjectif(payload) { return this.post("/calculs/objectif-kcal", payload); },
   poidsSante(tailleCm) { return this.get(`/calculs/poids-sante?taille_cm=${tailleCm}`); },
   purgerHistorique() { return this.delete("/historique"); },
+  categories() { return this.get("/categories"); },
+  catalogueFruitsLegumes() { return this.get("/catalogue/fruits-legumes"); },
+  ajouterFruitLegumeAuStock(identifiant, quantite) {
+    return this.post(`/catalogue/fruits-legumes/${identifiant}/ajouter-stock?quantite=${quantite}`);
+  },
 
   // ---------- Recettes ----------
   recettes(statut = null) {

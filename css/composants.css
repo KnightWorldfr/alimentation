@@ -2,7 +2,7 @@
    ALIMENTATION — design system (2/3 : composants par écran)
    ============================================================ */
 
-/* ---------- VUE SCAN ---------- */ 
+/* ---------- VUE SCAN ---------- */
 
 #lecteur-camera {
   width: 100%;
@@ -19,6 +19,7 @@
   display: flex;
   gap: 8px;
   margin-bottom: 14px;
+  flex-wrap: wrap;
 }
 
 .barre-outils-stock input[type="text"] {
@@ -501,4 +502,33 @@
   fill: var(--texte-faible);
   font-family: inherit;
   font-weight: 600;
+}
+
+/* ---------- Groupes par catégorie (Stock) ---------- */
+
+.groupe-categorie { margin-bottom: 20px; }
+
+.titre-categorie {
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: var(--texte-att);
+  margin: 0 0 10px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.compte-categorie {
+  background: var(--surface-alt);
+  color: var(--texte-faible);
+  font-size: 0.7rem;
+  font-weight: 700;
+  padding: 1px 8px;
+  border-radius: 10px;
+}
+
+button.action.petit.actif {
+  background: var(--accent-clair);
+  color: var(--accent-fonce);
+  border-color: var(--accent);
 }

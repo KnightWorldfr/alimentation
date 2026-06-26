@@ -41,6 +41,17 @@ async function initApp() {
   initBarreOutilsStock();
   initBoutonsConsommation();
   initBoutonsCourses();
+  initBoutonsScan();
+}
+
+// ---------- Scan : boutons d'ajout sans code-barres ----------
+
+function initBoutonsScan() {
+  const btnFruitsLegumes = document.getElementById("btn-fruits-legumes");
+  if (btnFruitsLegumes) btnFruitsLegumes.addEventListener("click", ouvrirCatalogueFruitsLegumes);
+
+  const btnAjoutManuel = document.getElementById("btn-ajout-manuel");
+  if (btnAjoutManuel) btnAjoutManuel.addEventListener("click", ouvrirAjoutManuel);
 }
 
 // ---------- Navigation entre vues ----------

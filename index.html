@@ -84,6 +84,15 @@
       </div>
     </div>
 
+    <div class="carte">
+      <h2>Pas de code-barres ?</h2>
+      <p style="font-size:0.8rem; color:var(--texte-att); margin-top:-4px;">
+        Pour les fruits/légumes en vrac, ou tout produit dont le code ne scanne pas.
+      </p>
+      <button class="action secondaire" id="btn-fruits-legumes" style="margin-bottom:8px;">🥑 Fruits &amp; légumes courants</button>
+      <button class="action secondaire" id="btn-ajout-manuel">➕ Ajouter un produit manuellement</button>
+    </div>
+
     <div id="zone-resultat-scan"></div>
   </section>
 
@@ -99,6 +108,7 @@
           <option value="quantite_desc">Quantité (décroissant)</option>
           <option value="recent">Ajout récent</option>
         </select>
+        <button class="action secondaire petit actif" id="btn-toggle-categorie" title="Grouper par catégorie">📂 Catégories</button>
       </div>
       <div class="grille-stock" id="grille-stock"><div class="vide">Chargement…</div></div>
     </div>
@@ -253,6 +263,7 @@
 <script src="js/modale.js"></script>
 <script src="js/profils.js"></script>
 <script src="js/produit.js"></script>
+<script src="js/catalogue.js"></script>
 <script src="js/scanner.js"></script>
 <script src="js/stock.js"></script>
 <script src="js/consommation.js"></script>
