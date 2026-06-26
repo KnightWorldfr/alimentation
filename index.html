@@ -180,19 +180,31 @@
 
   <!-- ============ VUE HISTORIQUE ============ -->
   <section class="vue" id="vue-historique">
-    <div class="carte">
-      <h2>Derniers mouvements</h2>
-      <div class="filtres-historique">
-        <select id="filtre-profil-historique"></select>
-        <select id="filtre-type-historique">
-          <option value="">Tous les types</option>
-          <option value="ajout">Ajouts</option>
-          <option value="consommation_libre">Consommations</option>
-          <option value="recette_part">Recettes</option>
-          <option value="correction_stock">Corrections</option>
-        </select>
+
+    <div class="bascule-mode">
+      <button data-sous-vue="dashboard" class="actif">📊 Dashboard</button>
+      <button data-sous-vue="journal">📋 Journal</button>
+    </div>
+
+    <div id="panneau-dashboard">
+      <div id="contenu-dashboard"><div class="vide">Chargement…</div></div>
+    </div>
+
+    <div id="panneau-journal" style="display:none;">
+      <div class="carte">
+        <h2>Derniers mouvements</h2>
+        <div class="filtres-historique">
+          <select id="filtre-profil-historique"></select>
+          <select id="filtre-type-historique">
+            <option value="">Tous les types</option>
+            <option value="ajout">Ajouts</option>
+            <option value="consommation_libre">Consommations</option>
+            <option value="recette_part">Recettes</option>
+            <option value="correction_stock">Corrections</option>
+          </select>
+        </div>
+        <div id="liste-historique"><div class="vide">Chargement…</div></div>
       </div>
-      <div id="liste-historique"><div class="vide">Chargement…</div></div>
     </div>
   </section>
 
@@ -233,6 +245,7 @@
 <script src="js/scanner.js"></script>
 <script src="js/stock.js"></script>
 <script src="js/consommation.js"></script>
+<script src="js/dashboard.js"></script>
 <script src="js/historique.js"></script>
 <script src="js/courses.js"></script>
 <script src="js/app.js"></script>
