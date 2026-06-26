@@ -19,11 +19,37 @@ const ICONES_MOUVEMENT = {
 
 let filtreProfilHistorique = null;
 let filtreTypeHistorique = null;
+let sousVueSuiviActuelle = "dashboard";
 
 async function initVueHistorique() {
-  await chargerProfils();
-  remplirFiltreProfilHistorique();
-  await chargerHistoriqueAffiche();
+  initBasculeSousVueSuivi();
+  if (sousVueSuiviActuelle === "dashboard") {
+    await initVueDashboard();
+  } else {
+    await chargerProfils();
+    remplirFiltreProfilHistorique();
+    await chargerHistoriqueAffiche();
+  }
+}
+
+function initBasculeSousVueSuivi() {
+  const boutons = document.querySelectorAll("#vue-historique .bascule-mode button[data-sous-vue]");
+  boutons.forEach(btn => {
+    btn.onclick = async () => {
+      sousVueSuiviActuelle = btn.dataset.sousVue;
+      boutons.forEach(b => b.classList.toggle("actif", b === btn));
+      document.getElementById("panneau-dashboard").style.display = sousVueSuiviActuelle === "dashboard" ? "block" : "none";
+      document.getElementById("panneau-journal").style.display = sousVueSuiviActuelle === "journal" ? "block" : "none";
+
+      if (sousVueSuiviActuelle === "dashboard") {
+        await initVueDashboard();
+      } else {
+        await chargerProfils();
+        remplirFiltreProfilHistorique();
+        await chargerHistoriqueAffiche();
+      }
+    };
+  });
 }
 
 function remplirFiltreProfilHistorique() {
