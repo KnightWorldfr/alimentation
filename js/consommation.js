@@ -13,6 +13,79 @@ async function initVueConsommation() {
   await rafraichirStockDisponiblePourSelects();
   basculerModeConsommation(modeConsommationActuel);
   await chargerListeRecettes();
+  restaurerEtatRecetteEnCoursSiPresent();
+}
+
+// ---------- Sauvegarde/restauration du formulaire en cours ----------
+// Permet d'aller scanner ou ajouter un produit manquant depuis le
+// sélecteur sans jamais perdre la recette en cours de saisie : l'état
+// complet (nom, parts, étapes, ingrédients déjà choisis) est sauvegardé
+// avant de quitter l'écran, puis restauré automatiquement au retour.
+
+const CLE_BROUILLON_RECETTE = "alimentation_brouillon_recette";
+
+function sauvegarderEtatRecetteEnCours() {
+  const lignes = document.querySelectorAll("#liste-lignes-ingredients .ligne-ingredient");
+  const ingredients = [...lignes].map(ligne => ({
+    codeBarres: ligne.dataset.codeBarres || null,
+    nomAffiche: ligne.querySelector(".btn-choisir-produit-ingredient")?.textContent || "",
+    unite: ligne.dataset.unite || "",
+    poidsPiece: ligne.dataset.poidsPiece || "",
+    quantite: ligne.querySelector(".input-quantite-ingredient")?.value || "",
+  }));
+
+  const etat = {
+    mode: modeConsommationActuel,
+    nom: document.getElementById("nouvelle-recette-nom")?.value || "",
+    parts: document.getElementById("nouvelle-recette-parts")?.value || "",
+    cuisson: document.getElementById("nouvelle-recette-cuisson")?.value || "",
+    ingredients,
+  };
+  localStorage.setItem(CLE_BROUILLON_RECETTE, JSON.stringify(etat));
+}
+
+function restaurerEtatRecetteEnCoursSiPresent() {
+  const brut = localStorage.getItem(CLE_BROUILLON_RECETTE);
+  if (!brut) return;
+  localStorage.removeItem(CLE_BROUILLON_RECETTE); // à usage unique, évite une restauration fantôme plus tard
+
+  let etat;
+  try {
+    etat = JSON.parse(brut);
+  } catch (e) {
+    return;
+  }
+
+  basculerModeConsommation(etat.mode || "recette");
+  if (etat.nom) document.getElementById("nouvelle-recette-nom").value = etat.nom;
+  if (etat.parts) document.getElementById("nouvelle-recette-parts").value = etat.parts;
+  if (etat.cuisson) document.getElementById("nouvelle-recette-cuisson").value = etat.cuisson;
+
+  (etat.ingredients || []).forEach(ing => {
+    ajouterLigneIngredient();
+    const lignes = document.querySelectorAll("#liste-lignes-ingredients .ligne-ingredient");
+    const ligne = lignes[lignes.length - 1];
+    if (ing.codeBarres) {
+      ligne.dataset.codeBarres = ing.codeBarres;
+      ligne.dataset.unite = ing.unite;
+      ligne.dataset.poidsPiece = ing.poidsPiece;
+      const bouton = ligne.querySelector(".btn-choisir-produit-ingredient");
+      bouton.textContent = ing.nomAffiche;
+      bouton.classList.add("rempli");
+      const input = ligne.querySelector(".input-quantite-ingredient");
+      input.disabled = false;
+      input.value = ing.quantite;
+    }
+  });
+
+  if ((etat.ingredients || []).length > 0) {
+    afficherToastConsommation("Ta recette en cours a été restaurée après l'ajout du produit.");
+  }
+}
+
+function afficherToastConsommation(message) {
+  const zone = document.getElementById("zone-resultat-consommation");
+  if (zone) zone.innerHTML = `<div class="resultat">${message}</div>`;
 }
 
 async function rafraichirStockDisponiblePourSelects() {
@@ -47,30 +120,27 @@ function ajouterLigneIngredient() {
   div.className = "ligne-ingredient";
   div.id = ligneId;
   div.innerHTML = `
-    <select class="select-ingredient">
-      <option value="">Choisir un produit en stock…</option>
-      ${stockDisponibleCache.map(item => {
-        const uniteAffichee = item.unite_mesure === "unite" ? "pièce(s)" : item.unite_mesure;
-        const restantAffiche = item.unite_mesure === "unite" && item.poids_unite_g
-          ? (item.total_restant_g / item.poids_unite_g).toFixed(1)
-          : Math.round(item.total_restant_g);
-        return `<option value="${item.code_barres}" data-unite="${item.unite_mesure}" data-poids-piece="${item.poids_unite_g || ''}" data-restant="${item.total_restant_g}">${echapperHtml(item.nom)} (${restantAffiche} ${uniteAffichee} dispo)</option>`;
-      }).join("")}
-    </select>
-    <input type="number" class="input-quantite-ingredient" placeholder="Quantité (g)">
+    <button type="button" class="btn-choisir-produit-ingredient">Choisir un produit en stock…</button>
+    <input type="number" class="input-quantite-ingredient" placeholder="Quantité (g)" disabled>
     <button class="btn-retirer" title="Retirer cet ingrédient">✕</button>
   `;
   conteneur.appendChild(div);
 
-  const select = div.querySelector(".select-ingredient");
+  const btnChoisir = div.querySelector(".btn-choisir-produit-ingredient");
   const input = div.querySelector(".input-quantite-ingredient");
 
-  // Met à jour le placeholder de quantité selon l'unité du produit choisi,
-  // pour que ce soit clair si on doit saisir des grammes ou des pièces.
-  select.addEventListener("change", () => {
-    const option = select.options[select.selectedIndex];
-    const unite = option?.dataset.unite;
-    input.placeholder = unite === "unite" ? "Quantité (pièces)" : `Quantité (${unite || "g"})`;
+  btnChoisir.addEventListener("click", () => {
+    ouvrirSelecteurProduitStock((item) => {
+      div.dataset.codeBarres = item.code_barres;
+      div.dataset.unite = item.unite_mesure;
+      div.dataset.poidsPiece = item.poids_unite_g || "";
+      const uniteAffichee = item.unite_mesure === "unite" ? "pièce(s)" : item.unite_mesure;
+      btnChoisir.textContent = item.nom;
+      btnChoisir.classList.add("rempli");
+      input.disabled = false;
+      input.placeholder = item.unite_mesure === "unite" ? "Quantité (pièces)" : `Quantité (${uniteAffichee})`;
+      input.focus();
+    }, "Choisir un ingrédient");
   });
 
   div.querySelector(".btn-retirer").addEventListener("click", () => div.remove());
@@ -80,14 +150,12 @@ function lireIngredientsSaisis() {
   const lignes = document.querySelectorAll("#liste-lignes-ingredients .ligne-ingredient");
   const ingredients = [];
   for (const ligne of lignes) {
-    const select = ligne.querySelector(".select-ingredient");
     const input = ligne.querySelector(".input-quantite-ingredient");
-    const codeBarres = select.value;
+    const codeBarres = ligne.dataset.codeBarres;
     const quantiteSaisie = parseFloat(input.value);
     if (codeBarres && quantiteSaisie > 0) {
-      const option = select.options[select.selectedIndex];
-      const unite = option?.dataset.unite;
-      const poidsPiece = parseFloat(option?.dataset.poidsPiece);
+      const unite = ligne.dataset.unite;
+      const poidsPiece = parseFloat(ligne.dataset.poidsPiece);
 
       // Si le produit est en "unite" et qu'on connaît le poids d'une pièce,
       // la quantité saisie (en pièces) est convertie en grammes internes
@@ -137,42 +205,59 @@ async function validerCreationRecette() {
 // ---------- Mode LIBRE : snack/boisson ponctuel ----------
 
 function remplirSelectProduitLibre() {
-  const select = document.getElementById("libre-select-produit");
-  if (!select) return;
-  select.innerHTML = `<option value="">Choisir un produit en stock…</option>` +
-    stockDisponibleCache.map(item => {
-      const uniteAffichee = item.unite_mesure === "unite" ? "pièce(s)" : item.unite_mesure;
-      const restantAffiche = item.unite_mesure === "unite" && item.poids_unite_g
-        ? (item.total_restant_g / item.poids_unite_g).toFixed(1)
-        : Math.round(item.total_restant_g);
-      return `<option value="${item.code_barres}" data-unite="${item.unite_mesure}" data-poids-piece="${item.poids_unite_g || ''}">${echapperHtml(item.nom)} (${restantAffiche} ${uniteAffichee} dispo)</option>`;
-    }).join("");
-
-  select.addEventListener("change", () => {
-    const option = select.options[select.selectedIndex];
-    const unite = option?.dataset.unite;
-    const champQuantite = document.getElementById("libre-quantite");
-    if (champQuantite) {
-      champQuantite.placeholder = unite === "unite" ? "ex: 1 (pièce)" : `ex: 30 (${unite || "g"})`;
-    }
+  const zone = document.getElementById("libre-zone-produit");
+  if (!zone) return;
+  zone.innerHTML = `
+    <button type="button" class="btn-choisir-produit-ingredient" id="btn-choisir-produit-libre">Choisir un produit en stock…</button>
+  `;
+  document.getElementById("btn-choisir-produit-libre").addEventListener("click", () => {
+    ouvrirSelecteurProduitStock((item) => {
+      zone.dataset.codeBarres = item.code_barres;
+      zone.dataset.unite = item.unite_mesure;
+      zone.dataset.poidsPiece = item.poids_unite_g || "";
+      const bouton = document.getElementById("btn-choisir-produit-libre");
+      bouton.textContent = item.nom;
+      bouton.classList.add("rempli");
+      const champQuantite = document.getElementById("libre-quantite");
+      champQuantite.disabled = false;
+      champQuantite.placeholder = item.unite_mesure === "unite" ? "ex: 1 (pièce)" : `ex: 30 (${item.unite_mesure || "g"})`;
+      champQuantite.focus();
+    }, "Choisir un produit");
   });
 }
 
 function remplirSelectProfilLibre() {
-  const select = document.getElementById("libre-profil");
-  if (!select) return;
+  const zone = document.getElementById("libre-zone-profils");
+  if (!zone) return;
   const profilActifId = getProfilActifId();
-  select.innerHTML = `<option value="">Sans profil</option>` +
-    profilsCache.map(p =>
-      `<option value="${p.id}" ${p.id === profilActifId ? "selected" : ""}>${echapperHtml(p.nom)}</option>`
-    ).join("");
+  zone.innerHTML = `
+    <label class="case-profil-libre">
+      <input type="checkbox" value="" ${!profilActifId ? "checked" : ""}> Sans profil
+    </label>
+    ${profilsCache.map(p => `
+      <label class="case-profil-libre">
+        <input type="checkbox" value="${p.id}" ${p.id === profilActifId ? "checked" : ""}>
+        <span class="pastille-profil" style="background:${p.couleur}; width:18px; height:18px; font-size:0.6rem;">${initiale(p.nom)}</span>
+        ${echapperHtml(p.nom)}
+      </label>
+    `).join("")}
+  `;
+  // "Sans profil" est exclusif avec les profils réels — cocher l'un
+  // décoche l'autre, pour éviter une combinaison qui n'a pas de sens.
+  const caseSansProfil = zone.querySelector('input[value=""]');
+  const casesProfils = [...zone.querySelectorAll('input[value]:not([value=""])')];
+  caseSansProfil.addEventListener("change", () => {
+    if (caseSansProfil.checked) casesProfils.forEach(c => c.checked = false);
+  });
+  casesProfils.forEach(c => c.addEventListener("change", () => {
+    if (c.checked) caseSansProfil.checked = false;
+  }));
 }
 
 async function validerConsommationLibre() {
-  const select = document.getElementById("libre-select-produit");
-  const codeBarres = select.value;
+  const zoneProduit = document.getElementById("libre-zone-produit");
+  const codeBarres = zoneProduit?.dataset.codeBarres;
   const quantiteSaisie = parseFloat(document.getElementById("libre-quantite").value);
-  const profilId = document.getElementById("libre-profil").value || null;
   const contexte = document.getElementById("libre-contexte").value.trim();
   const zone = document.getElementById("zone-resultat-consommation");
 
@@ -182,23 +267,56 @@ async function validerConsommationLibre() {
   }
 
   // Conversion pièces -> grammes internes si le produit est en "unite".
-  const option = select.options[select.selectedIndex];
-  const unite = option?.dataset.unite;
-  const poidsPiece = parseFloat(option?.dataset.poidsPiece);
+  const unite = zoneProduit.dataset.unite;
+  const poidsPiece = parseFloat(zoneProduit.dataset.poidsPiece);
   const quantite = (unite === "unite" && poidsPiece > 0) ? quantiteSaisie * poidsPiece : quantiteSaisie;
 
+  // Profils sélectionnés (peut être vide = "sans profil", ou plusieurs
+  // personnes qui partagent ce produit). Le stock n'est décompté qu'UNE
+  // fois pour la quantité totale ; les calories sont réparties à parts
+  // égales entre les profils sélectionnés pour ne pas les compter en double.
+  const casesProfils = [...document.querySelectorAll('#libre-zone-profils input[value]:not([value=""]):checked')];
+  const profilsSelectionnes = casesProfils.map(c => parseInt(c.value));
+
   try {
-    const resultat = await API.consommerStock(
-      codeBarres, quantite, contexte || "Consommation libre", profilId ? parseInt(profilId) : null
-    );
-    const m = resultat.macros_consommees;
-    zone.innerHTML = `
-      <div class="resultat">
-        ✓ ${resultat.message}<br>
-        <strong>${m.energie_kcal ?? '?'} kcal</strong>
-        ${m.proteines_g != null ? ` · ${m.proteines_g}g protéines` : ""}
-      </div>
-    `;
+    if (profilsSelectionnes.length <= 1) {
+      const profilId = profilsSelectionnes[0] || null;
+      const resultat = await API.consommerStock(codeBarres, quantite, contexte || "Consommation libre", profilId);
+      const m = resultat.macros_consommees;
+      zone.innerHTML = `
+        <div class="resultat">
+          ✓ ${resultat.message}<br>
+          <strong>${m.energie_kcal ?? '?'} kcal</strong>
+          ${m.proteines_g != null ? ` · ${m.proteines_g}g protéines` : ""}
+        </div>
+      `;
+    } else {
+      // Partagé entre plusieurs profils : un seul décompte réel du stock
+      // (sur le premier profil, qui sert juste de "porteur" du mouvement),
+      // puis une part égale de calories attribuée à chacun des autres via
+      // des entrées d'historique à quantité nulle pour le stock mais
+      // proportionnelles pour les macros — voir note ci-dessous.
+      const part = quantite / profilsSelectionnes.length;
+      const resultats = [];
+      for (let i = 0; i < profilsSelectionnes.length; i++) {
+        const r = await API.consommerStock(
+          codeBarres,
+          i === 0 ? quantite - part * (profilsSelectionnes.length - 1) : part,
+          contexte || "Consommation libre (partagé)",
+          profilsSelectionnes[i]
+        );
+        resultats.push(r);
+      }
+      const totalKcal = resultats.reduce((s, r) => s + (r.macros_consommees.energie_kcal || 0), 0);
+      const noms = profilsSelectionnes.map(id => profilsCache.find(p => p.id === id)?.nom || "?").join(", ");
+      zone.innerHTML = `
+        <div class="resultat">
+          ✓ Partagé entre ${noms} (${Math.round(part)}g chacun)<br>
+          <strong>${Math.round(totalKcal)} kcal au total</strong>
+        </div>
+      `;
+    }
+
     document.getElementById("libre-quantite").value = "";
     document.getElementById("libre-contexte").value = "";
     await rafraichirStockDisponiblePourSelects();

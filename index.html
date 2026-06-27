@@ -152,14 +152,14 @@
     <div id="panneau-mode-libre" style="display:none;">
       <div class="carte">
         <h2>Snack, boisson, grignotage…</h2>
-        <label for="libre-select-produit">Produit</label>
-        <select id="libre-select-produit"></select>
+        <label>Produit</label>
+        <div id="libre-zone-produit"></div>
 
         <label for="libre-quantite">Quantité consommée</label>
-        <input type="number" id="libre-quantite" placeholder="ex: 30">
+        <input type="number" id="libre-quantite" placeholder="ex: 30" disabled>
 
-        <label for="libre-profil">Qui ?</label>
-        <select id="libre-profil"></select>
+        <label>Qui ? (sélectionne une ou plusieurs personnes si c'est partagé)</label>
+        <div id="libre-zone-profils" class="zone-cases-profils"></div>
 
         <label for="libre-contexte">Précision (optionnel)</label>
         <input type="text" id="libre-contexte" placeholder="ex: Apéro">
@@ -265,6 +265,7 @@
 <script src="js/profils.js"></script>
 <script src="js/produit.js"></script>
 <script src="js/catalogue.js"></script>
+<script src="js/selecteur-produit.js"></script>
 <script src="js/scanner.js"></script>
 <script src="js/stock.js"></script>
 <script src="js/consommation.js"></script>

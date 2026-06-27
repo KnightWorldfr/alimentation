@@ -7,7 +7,7 @@
 //
 // CACHE_VERSION : change ce numéro à chaque mise à jour notable de l'appli
 // pour forcer le téléphone à retélécharger les nouveaux fichiers.
-const CACHE_VERSION = "alimentation-v13";
+const CACHE_VERSION = "alimentation-v14";
 
 const FICHIERS_A_METTRE_EN_CACHE = [
   "./",
@@ -25,6 +25,7 @@ const FICHIERS_A_METTRE_EN_CACHE = [
   "./js/profils.js",
   "./js/produit.js",
   "./js/catalogue.js",
+  "./js/selecteur-produit.js",
   "./js/scanner.js",
   "./js/stock.js",
   "./js/consommation.js",

@@ -582,3 +582,114 @@ button.action.petit.actif {
   font-size: inherit;
   font-family: inherit;
 }
+
+/* ---------- Sélecteur de produit (modale recherche) ---------- */
+
+.groupe-categorie-selecteur { margin-bottom: 14px; }
+
+.titre-categorie-selecteur {
+  font-size: 0.74rem;
+  font-weight: 700;
+  color: var(--texte-faible);
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+  margin-bottom: 6px;
+  padding-top: 4px;
+}
+
+.item-selecteur-produit {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  border: 1px solid var(--bordure);
+  border-radius: var(--rayon-sm);
+  margin-bottom: 6px;
+  cursor: pointer;
+  background: var(--surface);
+  transition: border-color 0.15s, background 0.15s;
+}
+
+.item-selecteur-produit:hover {
+  border-color: var(--accent);
+  background: var(--accent-clair);
+}
+
+.nom-item-selecteur { font-weight: 600; font-size: 0.88rem; }
+.marque-item-selecteur { font-size: 0.72rem; color: var(--texte-faible); margin-top: 1px; }
+.quantite-item-selecteur {
+  font-weight: 700;
+  font-size: 0.78rem;
+  color: var(--accent-fonce);
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+/* ---------- Bouton "choisir un produit" (remplace les select) ---------- */
+
+.btn-choisir-produit-ingredient {
+  flex: 2;
+  background: var(--surface);
+  border: 1.5px solid var(--bordure);
+  border-radius: var(--rayon-sm);
+  padding: 11px 13px;
+  font-family: inherit;
+  font-size: 0.88rem;
+  color: var(--texte-faible);
+  text-align: left;
+  cursor: pointer;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.btn-choisir-produit-ingredient.rempli {
+  color: var(--texte);
+  font-weight: 600;
+  border-color: var(--accent);
+}
+
+#libre-zone-produit .btn-choisir-produit-ingredient {
+  width: 100%;
+  flex: none;
+  margin-bottom: 14px;
+}
+
+.separateur-selecteur {
+  border-top: 1px solid var(--bordure);
+  margin: 14px 0;
+}
+
+/* ---------- Cases à cocher multi-profils (consommation libre) ---------- */
+
+.zone-cases-profils {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 14px;
+}
+
+.case-profil-libre {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--surface-alt);
+  border: 1.5px solid var(--bordure);
+  border-radius: 20px;
+  padding: 6px 12px 6px 8px;
+  font-size: 0.82rem;
+  cursor: pointer;
+  user-select: none;
+}
+
+.case-profil-libre input[type="checkbox"] {
+  width: auto;
+  margin: 0;
+  accent-color: var(--accent);
+}
+
+.case-profil-libre:has(input:checked) {
+  background: var(--accent-clair);
+  border-color: var(--accent);
+}
